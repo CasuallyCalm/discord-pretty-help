@@ -26,6 +26,7 @@ class Paginator:
     """
 
     def __init__(self, color=None, prefix="```", suffix="```", max_size=2000):
+        self.ending_note = None
         self.prefix = prefix
         self.suffix = suffix
         self.max_size = max_size - (0 if suffix is None else len(suffix))
@@ -62,6 +63,7 @@ class Paginator:
         embed = discord.Embed(
             title=page_name, description=self.prefix, color=self.color
         )
+        embed.set_footer(text=self.ending_note)
         self._pages.append(embed)
         return embed
 
@@ -300,6 +302,7 @@ class PrettyHelp(HelpCommand):
 
     async def prepare_help_command(self, ctx, command):
         self.paginator.clear()
+        self.paginator.ending_note = self.get_ending_note()
         await super().prepare_help_command(ctx, command)
 
     async def send_bot_help(self, mapping):
@@ -329,10 +332,7 @@ class PrettyHelp(HelpCommand):
             )
             self.add_indented_commands(commands, heading=category, max_size=max_size)
 
-        note = self.get_ending_note()
-        if note:
             self.paginator.add_line(self._no_category)
-            self.paginator.add_line(self._no_category, note)
 
         await self.send_pages(bot_help=True)
 
@@ -351,10 +351,7 @@ class PrettyHelp(HelpCommand):
         self.add_indented_commands(filtered, heading=self.commands_heading, group=group)
 
         if filtered:
-            note = self.get_ending_note()
-            if note:
-                self.paginator.add_line(group.name)
-                self.paginator.add_line(group.name, note)
+            self.paginator.add_line(group.name)
 
         await self.send_pages()
 
@@ -366,10 +363,6 @@ class PrettyHelp(HelpCommand):
             cog.get_commands(), sort=self.sort_commands
         )
         self.add_indented_commands(filtered, heading=self.commands_heading)
-
-        note = self.get_ending_note()
-        if note:
-            self.paginator.add_line(cog.qualified_name)
-            self.paginator.add_line(cog.qualified_name, note)
+        self.paginator.add_line(cog.qualified_name)
 
         await self.send_pages()
