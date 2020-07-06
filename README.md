@@ -27,7 +27,7 @@ bot = commands.Bot(command_prefix="!", help_command=PrettyHelp(color=discord.Col
 The basic `help` command will break commands up by cogs. Each cog will be a different page. Those pages can be navigated with
 the arrow embeds. The message is unresponsive after 30s of no activity, it'll remove the reactions to let you know.
 
-![example](https://raw.githubusercontent.com/stroupbslayen/discord-pretty-help/master/images/example.png)
+![example](https://raw.githubusercontent.com/stroupbslayen/discord-pretty-help/master/images/example.gif)
 
 ## Notes:
 * `manage-messages` permission is recommended so reactions can be removed automatically
