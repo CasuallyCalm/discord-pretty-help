@@ -372,12 +372,12 @@ class PrettyHelp(HelpCommand):
 
     async def send_cog_help(self, cog):
         if cog.description:
-            self.paginator.add_line(cog.description, empty=True)
+            self.paginator.add_line(cog.qualified_name, f"{cog.description}\n")
 
         filtered = await self.filter_commands(
             cog.get_commands(), sort=self.sort_commands
         )
-        self.add_indented_commands(filtered, heading=self.commands_heading)
+        self.add_indented_commands(filtered, heading=cog.qualified_name)
         self.paginator.add_line(cog.qualified_name)
 
         await self.send_pages()
