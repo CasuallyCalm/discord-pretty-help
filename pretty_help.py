@@ -281,7 +281,7 @@ class PrettyHelp(HelpCommand):
                     for emoji in navigation.keys():
                         try:
                             await message.remove_reaction(emoji, bot.user)
-                        except discord.errors.Forbidden:
+                        except Exception:
                             pass
 
     def add_command_formatting(self, command):
