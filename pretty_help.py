@@ -72,7 +72,10 @@ class Paginator:
     def get_page_index(self, page_index: int):
         "Gets the page based on it's index value"
         embed = self._pages[page_index]
-        embed.description = f"`Page:{page_index+1}/{len(self._pages)}`"
+        if not embed.description.startswith("`Page:"):
+            embed.description = (
+                f"`Page:{page_index+1}/{len(self._pages)}`\n{embed.description}"
+            )
         return embed
 
     def get_page(self, page_name, line=""):
