@@ -5,7 +5,7 @@ from random import randint
 import discord
 from discord.ext.commands.help import HelpCommand
 
-navigation = {"◀️": -1, "▶️": 1}
+navigation = {"◀️": -1, "▶️": 1, "❌": 0}
 
 
 class Paginator:
@@ -46,13 +46,15 @@ class Paginator:
 
     def get_page_reaction(self, emoji: str):
         """Returns the current page based on an emoji"""
-        pages = len(self._pages) - 1
-        self._current_page += navigation[emoji]
-        if self._current_page < 0:
-            self._current_page = pages
-        if self._current_page > pages:
-            self._current_page = 0
-        return self._current_page
+        nav = navigation[emoji]
+        if nav:
+            pages = len(self._pages) - 1
+            self._current_page += nav
+            if self._current_page < 0:
+                self._current_page = pages
+            if self._current_page > pages:
+                self._current_page = 0
+            return self._current_page
 
     @property
     def _prefix_len(self):
@@ -65,6 +67,12 @@ class Paginator:
         )
         embed.set_footer(text=self.ending_note)
         self._pages.append(embed)
+        return embed
+
+    def get_page_index(self, page_index: int):
+        "Gets the page based on it's index value"
+        embed = self._pages[page_index]
+        embed.description = f"`Page:{page_index+1}/{len(self._pages)}`"
         return embed
 
     def get_page(self, page_name, line=""):
@@ -230,7 +238,7 @@ class PrettyHelp(HelpCommand):
             page.description += "```"
 
         message: discord.Message = await destination.send(
-            embed=self.paginator._pages[0]
+            embed=self.paginator.get_page_index(0)
         )
         if bot_help:
 
@@ -255,7 +263,11 @@ class PrettyHelp(HelpCommand):
                     )
                     if emoji_check and user_check:
                         next_page = self.paginator.get_page_reaction(reaction.emoji)
-                        await message.edit(embed=self.paginator._pages[next_page])
+                        if next_page is None:
+                            return await message.delete()
+                        embed: discord.Embed = self.paginator.get_page_index(next_page)
+
+                        await message.edit(embed=embed)
 
                     try:
                         await message.remove_reaction(reaction.emoji, user)
