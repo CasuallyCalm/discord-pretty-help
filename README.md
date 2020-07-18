@@ -15,6 +15,7 @@ Based on the DefaultHelpCommand that discord.py uses, but revised for embeds and
 Example of how to use it:
 
 ```python
+from discord.ext import commands
 from pretty_help import PrettyHelp
 
 bot = commands.Bot(command_prefix="!", help_command=PrettyHelp())
