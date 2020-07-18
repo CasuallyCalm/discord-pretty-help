@@ -2,7 +2,7 @@ from pretty_help import __version__, PrettyHelp
 
 
 def test_version():
-    assert __version__ == "0.1.0"
+    assert __version__ == "1.0.0"
 
 
 import discord
