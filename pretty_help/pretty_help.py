@@ -1,3 +1,5 @@
+__all__ = ["PrettyHelp"]
+
 import asyncio
 import itertools
 from random import randint
@@ -160,6 +162,8 @@ class PrettyHelp(HelpCommand):
         The paginator used to paginate the help command output.
     color: :class: `discord.Color`
         The color to use for the help embeds. Default is a random color.
+    active: :class: `int`
+        The time in seconds the message will be active for. Default is 10.
     """
 
     def __init__(self, **options):
@@ -171,6 +175,7 @@ class PrettyHelp(HelpCommand):
         self.commands_heading = options.pop("commands_heading", "Commands:")
         self.no_category = options.pop("no_category", "No Category")
         self.paginator = options.pop("paginator", None)
+        self.active = options.pop("active", 30)
         if self.paginator is None:
             self.paginator = Paginator(color=options.pop("color", None))
 
@@ -257,7 +262,7 @@ class PrettyHelp(HelpCommand):
                             return True
 
                     reaction, user = await bot.wait_for(
-                        "reaction_add", timeout=30, check=check
+                        "reaction_add", timeout=self.active, check=check
                     )
 
                     user_check = user == ctx.author
