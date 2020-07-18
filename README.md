@@ -30,7 +30,10 @@ By default, the help will just pick a random color on every invoke. You can chan
 ```python
 from pretty_help import PrettyHelp
 
-bot = commands.Bot(command_prefix="!", help_command=PrettyHelp(color=discord.Color.dark_gold(), active=5)) #message will be active for 5s
+bot = commands.Bot(
+    command_prefix="!",
+    help_command=PrettyHelp(color=discord.Color.dark_gold(), active=5), #message will be active for 5s
+)
 ```
 
 The basic `help` command will break commands up by cogs. Each cog will be a different page. Those pages can be navigated with
