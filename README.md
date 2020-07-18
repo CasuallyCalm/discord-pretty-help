@@ -28,6 +28,8 @@ bot = commands.Bot(command_prefix="!", help_command=PrettyHelp())
 By default, the help will just pick a random color on every invoke. You can change this using the `color` argument:
 
 ```python
+import discord
+from discord.ext import commands
 from pretty_help import PrettyHelp
 
 bot = commands.Bot(
