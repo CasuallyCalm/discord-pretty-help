@@ -164,6 +164,11 @@ class PrettyHelp(HelpCommand):
         The color to use for the help embeds. Default is a random color.
     active: :class: `int`
         The time in seconds the message will be active for. Default is 10.
+    show_index: class: `bool`
+        A bool that indicates if the index page should be shown listing the available cogs
+        Defaults to ``True``.
+    index: :class: `str`
+        The string used when the index page is shown. Defaults to ``"Categories"``
     """
 
     def __init__(self, **options):
@@ -176,6 +181,8 @@ class PrettyHelp(HelpCommand):
         self.no_category = options.pop("no_category", "No Category")
         self.paginator = options.pop("paginator", None)
         self.active = options.pop("active", 30)
+        self.show_index = options.pop("show_index", True)
+        self.index = options.pop("index", "Categories")
         if self.paginator is None:
             self.paginator = Paginator(color=options.pop("color", None))
 
@@ -329,9 +336,26 @@ class PrettyHelp(HelpCommand):
         ctx = self.context
         bot = ctx.bot
 
-        if bot.description:
-            # <description> portion
-            self.paginator.add_line(self._no_category, bot.description, empty=True)
+        if self.show_index:
+            if bot.description:
+                self.paginator.add_line(self._index, bot.description, empty=True)
+
+            get_width = discord.utils._string_width
+            cogs = bot.cogs
+            max_size = max(map(len, cogs))
+            for cog_name, cog in cogs.items():
+                width = max_size - (get_width(cog_name) - len(cog_name))
+                description = cog.description if cog.description else ''
+                entry = "{0}{1:<{width}} {2}".format(
+                    self.indent * " ", cog_name, description, width=width
+                )
+                self.paginator.add_line(self._index, self.shorten_text(entry))
+
+            self.paginator.add_line(self._no_category, '', empty=True)
+        else:
+            if bot.description:
+                # <description> portion
+                self.paginator.add_line(self._no_category, bot.description, empty=True)
 
         no_category = self._no_category
 
@@ -359,6 +383,10 @@ class PrettyHelp(HelpCommand):
     @property
     def _no_category(self):
         return "{0.no_category}:".format(self)
+
+    @property
+    def _index(self):
+        return "{0.index}:".format(self)
 
     async def send_command_help(self, command):
         self.add_command_formatting(command)
