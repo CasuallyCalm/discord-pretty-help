@@ -336,22 +336,23 @@ class PrettyHelp(HelpCommand):
         ctx = self.context
         bot = ctx.bot
 
-        if self.show_index:
+        if self.show_index and bot.cogs:
             if bot.description:
                 self.paginator.add_line(self._index, bot.description, empty=True)
 
             get_width = discord.utils._string_width
             cogs = bot.cogs
             max_size = max(map(len, cogs))
-            for cog_name, cog in cogs.items():
+            cog_objects = sorted(cogs.values(), key=lambda c: c.qualified_name) if self.sort_commands else cogs.values()
+            for cog in cog_objects:
+                cog_name = cog.qualified_name
                 width = max_size - (get_width(cog_name) - len(cog_name))
-                description = cog.description if cog.description else ''
-                entry = "{0}{1:<{width}} {2}".format(
+                description = cog.description if cog.description else ""
+                entry = "{0}{1:<{width}}| {2}".format(
                     self.indent * " ", cog_name, description, width=width
                 )
                 self.paginator.add_line(self._index, self.shorten_text(entry))
 
-            self.paginator.add_line(self._no_category, '', empty=True)
         else:
             if bot.description:
                 # <description> portion
@@ -363,7 +364,7 @@ class PrettyHelp(HelpCommand):
             cog = command.cog
             return cog.qualified_name + ":" if cog is not None else no_category
 
-        filtered = await self.filter_commands(bot.commands, sort=True, key=get_category)
+        filtered = await self.filter_commands(bot.commands, sort=self.sort_commands, key=get_category)
         max_size = self.get_max_size(filtered)
         to_iterate = itertools.groupby(filtered, key=get_category)
 
