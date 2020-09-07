@@ -7,7 +7,7 @@ from random import randint
 import discord
 from discord.ext.commands.help import HelpCommand
 
-navigation = {"◀️": -1, "▶️": 1, "❌": 0}
+default_navigation = {"◀️": -1, "▶️": 1, "❌": 0}
 
 
 class Paginator:
@@ -27,7 +27,8 @@ class Paginator:
         The color of the disord embed. Default is a random color for every invoke
     """
 
-    def __init__(self, color=None, prefix="```", suffix="```", max_size=2000):
+    def __init__(self, navigation=None, color=None, prefix="```", suffix="```", max_size=2000):
+        self.navigation = navigation or default_navigation
         self.ending_note = None
         self.prefix = prefix
         self.suffix = suffix
@@ -48,7 +49,7 @@ class Paginator:
 
     def get_page_reaction(self, emoji: str):
         """Returns the current page based on an emoji"""
-        nav = navigation[emoji]
+        nav = self.navigation[emoji]
         if nav:
             pages = len(self._pages) - 1
             self._current_page += nav
@@ -181,10 +182,10 @@ class PrettyHelp(HelpCommand):
         self.no_category = options.pop("no_category", "No Category")
         self.paginator = options.pop("paginator", None)
         self.active = options.pop("active", 30)
+        self.navigation = options.pop("navigation", None)
         self.show_index = options.pop("show_index", True)
         self.index = options.pop("index", "Categories")
-        if self.paginator is None:
-            self.paginator = Paginator(color=options.pop("color", None))
+        self.paginator = self.paginator or Paginator(options.pop("navigation", None), color=options.pop("color", None))
 
         super().__init__(**options)
 
@@ -257,7 +258,7 @@ class PrettyHelp(HelpCommand):
         )
         if bot_help:
 
-            for emoji in navigation.keys():
+            for emoji in self.navigation.keys():
                 await message.add_reaction(emoji)
 
             while bot_help:
@@ -274,7 +275,7 @@ class PrettyHelp(HelpCommand):
 
                     user_check = user == ctx.author
                     emoji_check = any(
-                        emoji == reaction.emoji for emoji in navigation.keys()
+                        emoji == reaction.emoji for emoji in self.navigation.keys()
                     )
                     if emoji_check and user_check:
                         next_page = self.paginator.get_page_reaction(reaction.emoji)
@@ -290,7 +291,7 @@ class PrettyHelp(HelpCommand):
                         pass
                 except asyncio.TimeoutError:
                     bot_help = False
-                    for emoji in navigation.keys():
+                    for emoji in self.navigation.keys():
                         try:
                             await message.remove_reaction(emoji, bot.user)
                         except Exception:
