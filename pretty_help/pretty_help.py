@@ -7,7 +7,7 @@ from random import randint
 import discord
 from discord.ext.commands.help import HelpCommand
 
-default_navigation = {"◀️": -1, "▶️": 1, "❌": 0}
+from .navigation import Navigation
 
 
 class Paginator:
@@ -23,12 +23,21 @@ class Paginator:
         The suffix appended at the end of every page. e.g. three backticks.
     max_size: :class:`int`
         The maximum amount of codepoints allowed in a page.
+    navigation: :class:`pretty_help.Navigation`
+        Sets the emojis that conrol the help menu
     color: Optional[:class:`discord.Color`, :class: `int`]
         The color of the disord embed. Default is a random color for every invoke
     """
 
-    def __init__(self, navigation=None, color=None, prefix="```", suffix="```", max_size=2000):
-        self.navigation = navigation or default_navigation
+    def __init__(
+        self,
+        navigation: Navigation,
+        color=None,
+        prefix="```",
+        suffix="```",
+        max_size=2000,
+    ):
+        self.navigation = navigation
         self.ending_note = None
         self.prefix = prefix
         self.suffix = suffix
@@ -47,9 +56,9 @@ class Paginator:
         self._current_page = 0
         self._pages = []
 
-    def get_page_reaction(self, emoji: str):
+    def get_page_reaction(self, emoji):
         """Returns the current page based on an emoji"""
-        nav = self.navigation[emoji]
+        nav = self.navigation.get(emoji)
         if nav:
             pages = len(self._pages) - 1
             self._current_page += nav
@@ -156,6 +165,8 @@ class PrettyHelp(HelpCommand):
     commands_heading: :class:`str`
         The command list's heading string used when the help command is invoked with a category name.
         Useful for i18n. Defaults to ``"Commands:"``
+    navigation: Optional[:class:`pretty_help.Navigation`]
+        Sets the emojis that conrol the help menu
     no_category: :class:`str`
         The string used when there is a command which does not belong to any category(cog).
         Useful for i18n. Defaults to ``"No Category"``
@@ -182,10 +193,12 @@ class PrettyHelp(HelpCommand):
         self.no_category = options.pop("no_category", "No Category")
         self.paginator = options.pop("paginator", None)
         self.active = options.pop("active", 30)
-        self.navigation = options.pop("navigation", None)
+        self.navigation = options.pop("navigation", Navigation())
         self.show_index = options.pop("show_index", True)
         self.index = options.pop("index", "Categories")
-        self.paginator = self.paginator or Paginator(options.pop("navigation", None), color=options.pop("color", None))
+        self.paginator = self.paginator or Paginator(
+            self.navigation, color=options.pop("color", None)
+        )
 
         super().__init__(**options)
 
@@ -258,7 +271,7 @@ class PrettyHelp(HelpCommand):
         )
         if bot_help:
 
-            for emoji in self.navigation.keys():
+            for emoji in self.navigation:
                 await message.add_reaction(emoji)
 
             while bot_help:
@@ -274,9 +287,7 @@ class PrettyHelp(HelpCommand):
                     )
 
                     user_check = user == ctx.author
-                    emoji_check = any(
-                        emoji == reaction.emoji for emoji in self.navigation.keys()
-                    )
+                    emoji_check = reaction.emoji in self.navigation
                     if emoji_check and user_check:
                         next_page = self.paginator.get_page_reaction(reaction.emoji)
                         if next_page is None:
@@ -291,7 +302,7 @@ class PrettyHelp(HelpCommand):
                         pass
                 except asyncio.TimeoutError:
                     bot_help = False
-                    for emoji in self.navigation.keys():
+                    for emoji in self.navigation:
                         try:
                             await message.remove_reaction(emoji, bot.user)
                         except Exception:
@@ -336,6 +347,21 @@ class PrettyHelp(HelpCommand):
     async def send_bot_help(self, mapping):
         ctx = self.context
         bot = ctx.bot
+        no_category = self._no_category
+
+        def get_category(command, *, no_category=no_category):
+            cog = command.cog
+            return cog.qualified_name + ":" if cog is not None else no_category
+
+        help_filtered = (
+            filter(lambda c: c.name != "help", bot.commands)
+            if len(bot.commands) > 1
+            else bot.commands
+        )
+
+        filtered = await self.filter_commands(
+            help_filtered, sort=self.sort_commands, key=get_category
+        )
 
         if self.show_index and bot.cogs:
             if bot.description:
@@ -344,7 +370,11 @@ class PrettyHelp(HelpCommand):
             get_width = discord.utils._string_width
             cogs = bot.cogs
             max_size = max(map(len, cogs))
-            cog_objects = sorted(cogs.values(), key=lambda c: c.qualified_name) if self.sort_commands else cogs.values()
+            cog_objects = (
+                sorted(cogs.values(), key=lambda c: c.qualified_name)
+                if self.sort_commands
+                else cogs.values()
+            )
             for cog in cog_objects:
                 cog_name = cog.qualified_name
                 width = max_size - (get_width(cog_name) - len(cog_name))
@@ -354,18 +384,14 @@ class PrettyHelp(HelpCommand):
                 )
                 self.paginator.add_line(self._index, self.shorten_text(entry))
 
+            if not all(command.cog for command in filtered):
+                self.paginator.add_line(no_category, "", empty=True)
+
         else:
             if bot.description:
                 # <description> portion
-                self.paginator.add_line(self._no_category, bot.description, empty=True)
+                self.paginator.add_line(no_category, bot.description, empty=True)
 
-        no_category = self._no_category
-
-        def get_category(command, *, no_category=no_category):
-            cog = command.cog
-            return cog.qualified_name + ":" if cog is not None else no_category
-
-        filtered = await self.filter_commands(bot.commands, sort=self.sort_commands, key=get_category)
         max_size = self.get_max_size(filtered)
         to_iterate = itertools.groupby(filtered, key=get_category)
 
@@ -377,8 +403,6 @@ class PrettyHelp(HelpCommand):
                 else list(commands)
             )
             self.add_indented_commands(commands, heading=category, max_size=max_size)
-
-            self.paginator.add_line(self._no_category)
 
         await self.send_pages(bot_help=True)
 
