@@ -1,5 +1,7 @@
 __all__ = ["Navigation"]
 
+import re
+
 
 class Navigation:
     """A class to aid in customizing the navigation menu for PrettyHelp.
@@ -21,9 +23,9 @@ class Navigation:
     """
 
     def __init__(self, page_left="◀", page_right="▶", remove="❌") -> None:
-        self.page_left = page_left
-        self.page_right = page_right
-        self.remove = remove
+        self.page_left = self.__match(page_left)
+        self.page_right = self.__match(page_right)
+        self.remove = self.__match(remove)
 
     @property
     def _dict(self) -> dict:
@@ -48,6 +50,14 @@ class Navigation:
             return emoji in self._dict
         else:
             return self.custom(emoji) in self._dict
+
+    @staticmethod
+    def __match(emoji: str):
+        try:
+            pattern = r":[a-zA-Z0-9]+:[0-9]+"
+            return re.search(pattern=pattern, string=emoji)[0]
+        except TypeError:
+            return emoji
 
     def __iter__(self):
         return self._dict.__iter__()
