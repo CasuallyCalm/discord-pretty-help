@@ -265,7 +265,6 @@ class PrettyHelp(HelpCommand):
         bot = self.context.bot
 
         if ctx.guild is not None:
-            print("Checking perms")
             perms = ctx.channel.permissions_for(ctx.guild.me)
             if not perms.embed_links:
                 raise commands.BotMissingPermissions(("embed links",))
