@@ -287,19 +287,19 @@ class PrettyHelp(HelpCommand):
             while bot_help:
                 try:
 
-                    def check(reaction: discord.Reaction, user):
+                    def check(payload: discord.RawReactionActionEvent):
 
-                        if user != bot.user and message.id == reaction.message.id:
+                        if payload.user_id != bot.user.id and message.id == payload.message_id:
                             return True
 
-                    reaction, user = await bot.wait_for(
-                        "reaction_add", timeout=self.active, check=check
+                    payload = await bot.wait_for(
+                        "raw_reaction_add", timeout=self.active, check=check
                     )
 
-                    user_check = user == ctx.author
-                    emoji_check = reaction.emoji in self.navigation
+                    user_check = payload.user_id == ctx.author.id
+                    emoji_check = payload.emoji.name in self.navigation
                     if emoji_check and user_check:
-                        next_page = self.paginator.get_page_reaction(reaction.emoji)
+                        next_page = self.paginator.get_page_reaction(payload.emoji.name)
                         if next_page is None:
                             return await message.delete()
                         embed: discord.Embed = self.paginator.get_page_index(next_page)
@@ -307,7 +307,7 @@ class PrettyHelp(HelpCommand):
                         await message.edit(embed=embed)
 
                     try:
-                        await message.remove_reaction(reaction.emoji, user)
+                        await message.remove_reaction(payload.emoji, payload.member)
                     except discord.errors.Forbidden:
                         pass
                 except asyncio.TimeoutError:
