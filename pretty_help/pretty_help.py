@@ -297,9 +297,11 @@ class PrettyHelp(HelpCommand):
                     )
 
                     user_check = payload.user_id == ctx.author.id
-                    emoji_check = payload.emoji.name in self.navigation
+                    emoji_name = payload.emoji.name if payload.emoji.id is None\
+                        else f":{payload.emoji.name}:{payload.emoji.id}"
+                    emoji_check = emoji_name in self.navigation
                     if emoji_check and user_check:
-                        next_page = self.paginator.get_page_reaction(payload.emoji.name)
+                        next_page = self.paginator.get_page_reaction(emoji_name)
                         if next_page is None:
                             return await message.delete()
                         embed: discord.Embed = self.paginator.get_page_index(next_page)
