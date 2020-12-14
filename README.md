@@ -54,7 +54,7 @@ bot.help_command = PrettyHelp(navigation=nav, color=color, active_time=5)
 The basic `help` command will break commands up by cogs. Each cog will be a different page. Those pages can be navigated with
 the arrow embeds. The message is unresponsive after 30s of no activity, it'll remove the reactions to let you know.
 
-![example](images/example.gif)
+![example](https://raw.githubusercontent.com/stroupbslayen/discord-pretty-help/master/images/example.gif)
 
 # Changelog
 ## [1.2.0]
