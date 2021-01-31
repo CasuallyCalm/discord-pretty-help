@@ -57,10 +57,10 @@ the arrow embeds. The message is unresponsive after 30s of no activity, it'll re
 ![example](https://raw.githubusercontent.com/stroupbslayen/discord-pretty-help/master/images/example.gif)
 
 # Changelog
-## [1.2.0]
-- Completely rewritten
-- Revised page formatting
-- Fix various bugs from the previous release
+
+## [1.2.1]
+- Can run test bot with `poetry run test`
+- Cogs with many commands will be propertly paginated
 
 # Notes:
 

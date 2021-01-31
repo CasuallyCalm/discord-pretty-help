@@ -38,7 +38,7 @@ class Paginator:
         self.ending_note = None
         self.color = color
         self.char_limit = 6000
-        self.field_limit = 26
+        self.field_limit = 25
         self.prefix = "```"
         self.suffix = "```"
         self.clear()
@@ -59,11 +59,11 @@ class Paginator:
         """
         check = (
             len(embed) + sum(len(char) for char in chars if char) < self.char_limit
-            or len(embed.fields) < self.field_limit
+            and len(embed.fields) < self.field_limit
         )
         return check
 
-    def _new_page(self, title: str):
+    def _new_page(self, title: str, description: str):
         """
         Create a new page
 
@@ -73,7 +73,7 @@ class Paginator:
         Returns:
             discord.Emebed: Returns an embed with the title and color set
         """
-        return discord.Embed(title=title, color=self.color)
+        return discord.Embed(title=title, description=description, color=self.color)
 
     def _add_page(self, page: discord.Embed):
         """
@@ -100,8 +100,7 @@ class Paginator:
             return
 
         page_title = title.qualified_name if cog else title
-        embed = self._new_page(page_title)
-        embed.description = (title.description or "") if cog else ""
+        embed = self._new_page(page_title, (title.description or "") if cog else "")
 
         self._add_command_fields(embed, page_title, commands_list)
 
@@ -126,7 +125,7 @@ class Paginator:
                 self.suffix,
             ):
                 self._add_page(embed)
-                embed = self._new_page(page_title)
+                embed = self._new_page(page_title, embed.description)
 
             embed.add_field(
                 name=command.name,
@@ -143,8 +142,9 @@ class Paginator:
             command (commands.Command): The command to get help for
             signature (str): The command signature/usage string
         """
-        page = self._new_page(command.qualified_name)
-        page.description = f"{self.prefix}{command.help}{self.suffix}" or ""
+        page = self._new_page(
+            command.qualified_name, f"{self.prefix}{command.help}{self.suffix}" or ""
+        )
         if command.aliases:
             aliases = ", ".join(command.aliases)
             page.add_field(
@@ -165,8 +165,10 @@ class Paginator:
             group (commands.Group): The command group to get help for
             commands_list (List[commands.Command]): The list of commands in the group
         """
-        page = self._new_page(group.name)
-        page.description = f"{self.prefix}{group.help}{self.suffix}" or ""
+        page = self._new_page(
+            group.name, f"{self.prefix}{group.help}{self.suffix}" or ""
+        )
+
         self._add_command_fields(page, group.name, commands_list)
 
     def add_index(self, include: bool, title: str, bot: commands.Bot):
@@ -179,8 +181,8 @@ class Paginator:
             bot (commands.Bot): The bot instance
         """
         if include:
-            index = self._new_page(title)
-            index.description = bot.description or ""
+            index = self._new_page(title, bot.description or "")
+
             for page_no, page in enumerate(self._pages, 2):
                 index.add_field(
                     name=f"{page_no}) {page.title}",
