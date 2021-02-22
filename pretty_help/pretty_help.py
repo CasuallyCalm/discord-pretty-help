@@ -142,8 +142,14 @@ class Paginator:
             command (commands.Command): The command to get help for
             signature (str): The command signature/usage string
         """
+        if command.help:
+            commandhelp = command.help
+        elif command.description:
+            commandhelp = command.description
+        else:
+            commandhelp = None
         page = self._new_page(
-            command.qualified_name, f"{self.prefix}{command.help}{self.suffix}" or ""
+            command.qualified_name, f"{self.prefix}{commandhelp}{self.suffix}" or ""
         )
         if command.aliases:
             aliases = ", ".join(command.aliases)
