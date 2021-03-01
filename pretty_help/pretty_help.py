@@ -1,7 +1,7 @@
 __all__ = ["PrettyHelp"]
 
 import asyncio
-from random import randint
+from random import randint, uniform
 from typing import List, Union
 
 import discord
@@ -29,12 +29,11 @@ class Paginator:
         Sets the emojis that conrol the help menu
     color: Optional[:class:`discord.Color`, :class: `int`]
         The color of the disord embed. Default is a random color for every invoke
+    ending_note: Optional[:class:`str`]
+        The footer in of the help embed
     """
 
-    def __init__(
-        self,
-        color=0,
-    ):
+    def __init__(self, color=0):
         self.ending_note = None
         self.color = color
         self.char_limit = 6000
@@ -134,6 +133,17 @@ class Paginator:
             )
         self._add_page(embed)
 
+    @staticmethod
+    def __command_info(command: Union[commands.Command, commands.Group]):
+        info = ""
+        if command.description:
+            info += command.description + "\n\n"
+        if command.help:
+            info += command.help
+        if not info:
+            info = "None"
+        return info
+
     def add_command(self, command: commands.Command, signature: str):
         """
         Add a command help page
@@ -142,14 +152,10 @@ class Paginator:
             command (commands.Command): The command to get help for
             signature (str): The command signature/usage string
         """
-        if command.help:
-            commandhelp = command.help
-        elif command.description:
-            commandhelp = command.description
-        else:
-            commandhelp = None
+        desc = f"{command.description}\n\n" if command.description else ""
         page = self._new_page(
-            command.qualified_name, f"{self.prefix}{commandhelp}{self.suffix}" or ""
+            command.qualified_name,
+            f"{self.prefix}{self.__command_info(command)}{self.suffix}" or "",
         )
         if command.aliases:
             aliases = ", ".join(command.aliases)
@@ -172,7 +178,7 @@ class Paginator:
             commands_list (List[commands.Command]): The list of commands in the group
         """
         page = self._new_page(
-            group.name, f"{self.prefix}{group.help}{self.suffix}" or ""
+            group.name, f"{self.prefix}{self.__command_info(group)}{self.suffix}" or ""
         )
 
         self._add_command_fields(page, group.name, commands_list)
@@ -235,6 +241,8 @@ class PrettyHelp(HelpCommand):
         output is DM'd. If ``None``, then the bot will only DM when the help
         message becomes too long (dictated by more than :attr:`dm_help_threshold` characters).
         Defaults to ``False``.
+    ending_note: Optional[:class:`str`]
+        The footer in of the help embed
     index_title: :class: `str`
         The string used when the index page is shown. Defaults to ``"Categories"``
     navigation: Optional[:class:`pretty_help.Navigation`]
@@ -264,6 +272,7 @@ class PrettyHelp(HelpCommand):
         self.sort_commands = options.pop("sort_commands", True)
         self.show_index = options.pop("show_index", True)
         self.paginator = Paginator(color=self.color)
+        self.ending_note = options.pop("ending_note", "")
 
         super().__init__(**options)
 
@@ -286,7 +295,7 @@ class PrettyHelp(HelpCommand):
     def get_ending_note(self):
         """Returns help command's ending note. This is mainly useful to override for i18n purposes."""
         command_name = self.invoked_with
-        return (
+        return self.ending_note or (
             "Type {0}{1} command for more info on a command.\n"
             "You can also type {0}{1} category for more info on a category.".format(
                 self.clean_prefix, command_name
@@ -406,8 +415,8 @@ class PrettyHelp(HelpCommand):
             filtered = await self.filter_commands(
                 group.commands, sort=self.sort_commands
             )
-            if filtered:
-                self.paginator.add_group(group, filtered)
+            # if filtered:
+            self.paginator.add_group(group, filtered)
         await self.send_pages()
 
     async def send_cog_help(self, cog: commands.Cog):

@@ -27,16 +27,27 @@ async def on_ready():
 class TestCog(commands.Cog):
     """This is a cog for testing purposes"""
 
-    @commands.command()
+    @commands.command(description="This is a command description")
     async def testcommand(self, ctx: commands.Context):
+        """This is command help"""
+        await ctx.send("This is a test command")
+
+    @commands.command(description="This is a command description")
+    async def testcommand2(self, ctx: commands.Context):
+        await ctx.send("This is a test command")
+
+    @commands.command()
+    async def testcommand3(self, ctx: commands.Context):
+        """This is command help"""
         await ctx.send("This is a test command")
 
 
 class ACog(commands.Cog, name="Z Cog"):
     """This is a cog for testing purposes"""
 
-    @commands.group()
+    @commands.group(description="This is a group description")
     async def atestcommand(self, ctx: commands.Context):
+        """This is group help"""
         await ctx.send("This is a test command")
 
     @atestcommand.command()

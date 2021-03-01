@@ -25,6 +25,7 @@ bot = commands.Bot(command_prefix="!", help_command=PrettyHelp())
 
 - `active_time` - Set the time (in seconds) that the message will be active default is 30s
 - `color` - Set the default embed color
+- `ending_note` - Set the footer of the embed
 - `index_title` - Set the index page name default is *"Categories"*
 - `navigation` - Set the emojis that will control the help menu. Uses a `pretty_help.Navigation()` instance.
 - `no_category` - Set the name of the page with commands not part of a category. Default is "*No Category*"
@@ -58,9 +59,10 @@ the arrow embeds. The message is unresponsive after 30s of no activity, it'll re
 
 # Changelog
 
-## [1.2.1]
-- Can run test bot with `poetry run test`
-- Cogs with many commands will be propertly paginated
+## [1.2.2]
+- Added `ending_note` kwarg to customize the footer of embeds
+- Allow `Command.description` to be used along with `Command.help` for help specific commands
+- Fixed a bug where groups with 0 commands would cause an error
 
 # Notes:
 
