@@ -128,7 +128,7 @@ class Paginator:
 
             embed.add_field(
                 name=command.name,
-                value=f'{self.prefix}{command.short_doc or "No Description"}{self.suffix}',
+                value=f'{self.prefix}{command.help or command.brief or "No Description"}{self.suffix}',
                 inline=False,
             )
         self._add_page(embed)
@@ -139,7 +139,9 @@ class Paginator:
         if command.description:
             info += command.description + "\n\n"
         if command.help:
-            info += command.help
+            info += command.hep
+        if command.breif:
+            info += command.brief
         if not info:
             info = "None"
         return info
