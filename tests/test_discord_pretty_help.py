@@ -13,9 +13,17 @@ dotenv.load_dotenv("./tests/.env")
 # ":discord:743511195197374563" is a custom discord emoji format. Adjust to match your own custom emoji.
 nav = Navigation(":discord:743511195197374563", "👎", "\U0001F44D")
 
+# Custom ending note
+ending_note = "The ending not from {ctx.bot.user.name}\nFor command {help.clean_prefix}{help.invoked_with}"
 
-bot = commands.Bot(command_prefix="!", description="this is the bots descripton")
-bot.help_command = PrettyHelp(navigation=nav)
+bot = commands.Bot(
+    command_prefix="!",
+    description="this is the bots descripton",
+)
+bot.help_command = PrettyHelp(
+    navigation=nav,
+    ending_note=ending_note,
+)
 
 
 @bot.event

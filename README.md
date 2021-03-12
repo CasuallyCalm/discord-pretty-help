@@ -25,7 +25,7 @@ bot = commands.Bot(command_prefix="!", help_command=PrettyHelp())
 
 - `active_time` - Set the time (in seconds) that the message will be active default is 30s
 - `color` - Set the default embed color
-- `ending_note` - Set the footer of the embed
+- `ending_note` - Set the footer of the embed. Ending notes are fed a `commands.Context` (`ctx`) and a `PrettyHelp` (`help`) instance for more advanced customization.
 - `index_title` - Set the index page name default is *"Categories"*
 - `navigation` - Set the emojis that will control the help menu. Uses a `pretty_help.Navigation()` instance.
 - `no_category` - Set the name of the page with commands not part of a category. Default is "*No Category*"
@@ -44,11 +44,14 @@ from pretty_help import PrettyHelp, Navigation
 
 bot = commands.Bot(command_prefix="!")
 
+# custom ending note using the command context and help command formatters
+ending_note = "The ending not from {ctx.bot.user.name}\nFor command {help.clean_prefix}{help.invoked_with}"
+
 # ":discord:743511195197374563" is a custom discord emoji format. Adjust to match your own custom emoji.
 nav = Navigation(":discord:743511195197374563", "👎", "\U0001F44D")
 color = discord.Color.dark_gold()
 
-bot.help_command = PrettyHelp(navigation=nav, color=color, active_time=5)
+bot.help_command = PrettyHelp(navigation=nav, color=color, active_time=5, ending_note=ending_note)
 
 ```
 
@@ -59,10 +62,9 @@ the arrow embeds. The message is unresponsive after 30s of no activity, it'll re
 
 # Changelog
 
-## [1.2.2]
-- Added `ending_note` kwarg to customize the footer of embeds
-- Allow `Command.description` to be used along with `Command.help` for help specific commands
-- Fixed a bug where groups with 0 commands would cause an error
+## [1.2.3]
+- Allowed for more customized ending notes.
+
 
 # Notes:
 
