@@ -1,12 +1,11 @@
 __all__ = ["PrettyHelp"]
 
 import asyncio
-from random import randint, uniform
+from random import randint
 from typing import List, Union
 
 import discord
 from discord.ext import commands
-from discord.ext.commands.cog import Cog
 from discord.ext.commands.help import HelpCommand
 
 from .navigation import Navigation
