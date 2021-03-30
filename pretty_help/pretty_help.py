@@ -296,7 +296,10 @@ class PrettyHelp(HelpCommand):
         command_name = self.invoked_with
         note = (
             self.ending_note
-            or """Type {help.clean_prefix}{help.invoked_with} command for more info on a command.\nYou can also type {help.clean_prefix}{help.invoked_with} category for more info on a category."""
+            or (
+                "Type {help.clean_prefix}{help.invoked_with} command for more info on a command.\n"
+                "You can also type {help.clean_prefix}{help.invoked_with} category for more info on a category."
+            )
         )
         return note.format(ctx=self.context, help=self)
 
