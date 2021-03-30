@@ -240,6 +240,10 @@ class PrettyHelp(HelpCommand):
         output is DM'd. If ``None``, then the bot will only DM when the help
         message becomes too long (dictated by more than :attr:`dm_help_threshold` characters).
         Defaults to ``False``.
+    paginator: Optional[Callable[[commands.Context, discord.abc.Messageable, List[discord.Embed]], Awaitable[None]]]
+        A function to use instead of the default paginator. Will receive ctx
+        (:class:`commands.Context`), a destination (:class:`discord.abc.Messageable`),
+        and a list of embeds (List[:class:`discord.Embed`])
     ending_note: Optional[:class:`str`]
         The footer in of the help embed
     index_title: :class: `str`
@@ -270,6 +274,7 @@ class PrettyHelp(HelpCommand):
         self.no_category = options.pop("no_category", "No Category")
         self.sort_commands = options.pop("sort_commands", True)
         self.show_index = options.pop("show_index", True)
+        self.paginator_function = options.pop("paginator", None)
         self.paginator = Paginator(color=self.color)
         self.ending_note = options.pop("ending_note", "")
 
@@ -309,6 +314,13 @@ class PrettyHelp(HelpCommand):
         pages = self.paginator.pages
         total = len(pages)
         destination = self.get_destination()
+
+        # Use custom paginator, if passed
+        if self.paginator_function:
+            await self.paginator_function(
+                self.context, destination, pages
+            )
+            return
 
         message: discord.Message = await destination.send(embed=pages[0])
 
