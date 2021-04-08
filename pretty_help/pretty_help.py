@@ -240,7 +240,7 @@ class PrettyHelp(HelpCommand):
         output is DM'd. If ``None``, then the bot will only DM when the help
         message becomes too long (dictated by more than :attr:`dm_help_threshold` characters).
         Defaults to ``False``.
-    paginator: Optional[Callable[[commands.Context, discord.abc.Messageable, List[discord.Embed]], Awaitable[None]]]
+    menu: Optional[Callable[[commands.Context, discord.abc.Messageable, List[discord.Embed]], Awaitable[None]]]
         A function to use instead of the default paginator. Will receive ctx
         (:class:`commands.Context`), a destination (:class:`discord.abc.Messageable`),
         and a list of embeds (List[:class:`discord.Embed`])
@@ -274,7 +274,7 @@ class PrettyHelp(HelpCommand):
         self.no_category = options.pop("no_category", "No Category")
         self.sort_commands = options.pop("sort_commands", True)
         self.show_index = options.pop("show_index", True)
-        self.paginator_function = options.pop("paginator", None)
+        self.menu = options.pop("menu", self.default_menu)
         self.paginator = Paginator(color=self.color)
         self.ending_note = options.pop("ending_note", "")
 
@@ -309,19 +309,15 @@ class PrettyHelp(HelpCommand):
         return note.format(ctx=self.context, help=self)
 
     async def send_pages(self):
-        """A helper utility to send the page output from :attr:`paginator` to the destination."""
-
         pages = self.paginator.pages
-        total = len(pages)
         destination = self.get_destination()
 
-        # Use custom paginator, if passed
-        if self.paginator_function:
-            await self.paginator_function(
-                self.context, destination, pages
-            )
-            return
+        await self.menu(self.context, destination, pages)
 
+    async def default_menu(self, context, destination, pages):
+        """A helper utility to send the page output from :attr:`paginator` to the destination."""
+
+        total = len(pages)
         message: discord.Message = await destination.send(embed=pages[0])
 
         if total > 1:
