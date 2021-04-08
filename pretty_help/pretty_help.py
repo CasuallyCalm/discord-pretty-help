@@ -1,12 +1,11 @@
 __all__ = ["PrettyHelp"]
 
 import asyncio
-from random import randint, uniform
+from random import randint
 from typing import List, Union
 
 import discord
 from discord.ext import commands
-from discord.ext.commands.cog import Cog
 from discord.ext.commands.help import HelpCommand
 
 from .navigation import Navigation
@@ -241,6 +240,10 @@ class PrettyHelp(HelpCommand):
         output is DM'd. If ``None``, then the bot will only DM when the help
         message becomes too long (dictated by more than :attr:`dm_help_threshold` characters).
         Defaults to ``False``.
+    menu: Optional[Callable[[commands.Context, discord.abc.Messageable, List[discord.Embed]], Awaitable[None]]]
+        A function to use instead of the default paginator. Will receive ctx
+        (:class:`commands.Context`), a destination (:class:`discord.abc.Messageable`),
+        and a list of embeds (List[:class:`discord.Embed`])
     ending_note: Optional[:class:`str`]
         The footer in of the help embed
     index_title: :class: `str`
@@ -271,6 +274,7 @@ class PrettyHelp(HelpCommand):
         self.no_category = options.pop("no_category", "No Category")
         self.sort_commands = options.pop("sort_commands", True)
         self.show_index = options.pop("show_index", True)
+        self.menu = options.pop("menu", self.default_menu)
         self.paginator = Paginator(color=self.color)
         self.ending_note = options.pop("ending_note", "")
 
@@ -297,17 +301,23 @@ class PrettyHelp(HelpCommand):
         command_name = self.invoked_with
         note = (
             self.ending_note
-            or """Type {help.clean_prefix}{help.invoked_with} command for more info on a command.\nYou can also type {help.clean_prefix}{help.invoked_with} category for more info on a category."""
+            or (
+                "Type {help.clean_prefix}{help.invoked_with} command for more info on a command.\n"
+                "You can also type {help.clean_prefix}{help.invoked_with} category for more info on a category."
+            )
         )
         return note.format(ctx=self.context, help=self)
 
     async def send_pages(self):
-        """A helper utility to send the page output from :attr:`paginator` to the destination."""
-
         pages = self.paginator.pages
-        total = len(pages)
         destination = self.get_destination()
 
+        await self.menu(self.context, destination, pages)
+
+    async def default_menu(self, context, destination, pages):
+        """A helper utility to send the page output from :attr:`paginator` to the destination."""
+
+        total = len(pages)
         message: discord.Message = await destination.send(embed=pages[0])
 
         if total > 1:
