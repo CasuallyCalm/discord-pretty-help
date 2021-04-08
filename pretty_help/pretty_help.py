@@ -1,6 +1,5 @@
 __all__ = ["PrettyHelp"]
 
-import asyncio
 from random import randint
 from typing import List, Union
 
@@ -8,14 +7,12 @@ import discord
 from discord.ext import commands
 from discord.ext.commands.help import HelpCommand
 
-from .navigation import Navigation
+from .menu import DefaultMenu
 
 
 class Paginator:
-    """A class that aids in paginating code blocks for Discord messages.
-    .. container:: operations
-        .. describe:: len(x)
-            Returns the total number of characters in the paginator.
+    """A class that creates pages for Discord messages.
+
     Attributes
     -----------
     prefix: Optional[:class:`str`]
@@ -24,8 +21,6 @@ class Paginator:
         The suffix appended at the end of every page. e.g. three backticks.
     max_size: :class:`int`
         The maximum amount of codepoints allowed in a page.
-    navigation: :class:`pretty_help.Navigation`
-        Sets the emojis that conrol the help menu
     color: Optional[:class:`discord.Color`, :class: `int`]
         The color of the disord embed. Default is a random color for every invoke
     ending_note: Optional[:class:`str`]
@@ -229,8 +224,6 @@ class PrettyHelp(HelpCommand):
     Attributes
     ------------
 
-    active_time: :class: `int`
-        The time in seconds the message will be active for. Default is 10.
     color: :class: `discord.Color`
         The color to use for the help embeds. Default is a random color.
     dm_help: Optional[:class:`bool`]
@@ -240,16 +233,13 @@ class PrettyHelp(HelpCommand):
         output is DM'd. If ``None``, then the bot will only DM when the help
         message becomes too long (dictated by more than :attr:`dm_help_threshold` characters).
         Defaults to ``False``.
-    menu: Optional[Callable[[commands.Context, discord.abc.Messageable, List[discord.Embed]], Awaitable[None]]]
-        A function to use instead of the default paginator. Will receive ctx
-        (:class:`commands.Context`), a destination (:class:`discord.abc.Messageable`),
-        and a list of embeds (List[:class:`discord.Embed`])
+    menu: Optional[:class:`pretty_help.PrettyMenu`]
+        The menu to use for navigating pages. Defautl is :class:`DefaultMenu`
+        Custom menus should inherit from :class:`pretty_help.PrettyMenu`
     ending_note: Optional[:class:`str`]
         The footer in of the help embed
     index_title: :class: `str`
         The string used when the index page is shown. Defaults to ``"Categories"``
-    navigation: Optional[:class:`pretty_help.Navigation`]
-        Sets the emojis that conrol the help menu
     no_category: :class:`str`
         The string used when there is a command which does not belong to any category(cog).
         Useful for i18n. Defaults to ``"No Category"``
@@ -258,23 +248,20 @@ class PrettyHelp(HelpCommand):
     show_index: class: `bool`
         A bool that indicates if the index page should be shown listing the available cogs
         Defaults to ``True``.
-
     """
 
     def __init__(self, **options):
 
-        self.active_time = options.pop("active_time", 30)
         self.color = options.pop(
             "color",
             discord.Color.from_rgb(randint(0, 255), randint(0, 255), randint(0, 255)),
         )
         self.dm_help = options.pop("dm_help", False)
         self.index_title = options.pop("index_title", "Categories")
-        self.navigation = options.pop("navigation", Navigation())
         self.no_category = options.pop("no_category", "No Category")
         self.sort_commands = options.pop("sort_commands", True)
         self.show_index = options.pop("show_index", True)
-        self.menu = options.pop("menu", self.default_menu)
+        self.menu = options.pop("menu", DefaultMenu())
         self.paginator = Paginator(color=self.color)
         self.ending_note = options.pop("ending_note", "")
 
@@ -298,86 +285,16 @@ class PrettyHelp(HelpCommand):
 
     def get_ending_note(self):
         """Returns help command's ending note. This is mainly useful to override for i18n purposes."""
-        command_name = self.invoked_with
-        note = (
-            self.ending_note
-            or (
-                "Type {help.clean_prefix}{help.invoked_with} command for more info on a command.\n"
-                "You can also type {help.clean_prefix}{help.invoked_with} category for more info on a category."
-            )
+        note = self.ending_note or (
+            "Type {help.clean_prefix}{help.invoked_with} command for more info on a command.\n"
+            "You can also type {help.clean_prefix}{help.invoked_with} category for more info on a category."
         )
         return note.format(ctx=self.context, help=self)
 
     async def send_pages(self):
         pages = self.paginator.pages
         destination = self.get_destination()
-
-        await self.menu(self.context, destination, pages)
-
-    async def default_menu(self, context, destination, pages):
-        """A helper utility to send the page output from :attr:`paginator` to the destination."""
-
-        total = len(pages)
-        message: discord.Message = await destination.send(embed=pages[0])
-
-        if total > 1:
-            bot: commands.Bot = self.context.bot
-            navigating = True
-            index = 0
-
-            for reaction in self.navigation:
-                await message.add_reaction(reaction)
-
-            while navigating:
-                try:
-
-                    def check(payload: discord.RawReactionActionEvent):
-
-                        if (
-                            payload.user_id != bot.user.id
-                            and message.id == payload.message_id
-                        ):
-                            return True
-
-                    payload: discord.RawReactionActionEvent = await bot.wait_for(
-                        "raw_reaction_add", timeout=self.active_time, check=check
-                    )
-
-                    emoji_name = (
-                        payload.emoji.name
-                        if payload.emoji.id is None
-                        else f":{payload.emoji.name}:{payload.emoji.id}"
-                    )
-
-                    if (
-                        emoji_name in self.navigation
-                        and payload.user_id == self.context.author.id
-                    ):
-                        nav = self.navigation.get(emoji_name)
-                        if not nav:
-
-                            navigating = False
-                            return await message.delete()
-                        else:
-                            index += nav
-                            embed: discord.Embed = pages[index % total]
-
-                            await message.edit(embed=embed)
-
-                    try:
-                        await message.remove_reaction(
-                            payload.emoji, discord.Object(id=payload.user_id)
-                        )
-                    except discord.errors.Forbidden:
-                        pass
-
-                except asyncio.TimeoutError:
-                    navigating = False
-                    for emoji in self.navigation:
-                        try:
-                            await message.remove_reaction(emoji, bot.user)
-                        except Exception:
-                            pass
+        await self.menu.send_pages(self.context, destination, pages)
 
     def get_destination(self):
         ctx = self.context

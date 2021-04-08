@@ -3,15 +3,14 @@ Note: Rename `env.example` to `.env` and enter your token then run `poetry run t
 """
 import os
 
-import discord
 from discord.ext import commands
-from pretty_help import Navigation, PrettyHelp
+from pretty_help import DefaultMenu, PrettyHelp
 import dotenv
 
 dotenv.load_dotenv("./tests/.env")
 
 # ":discord:743511195197374563" is a custom discord emoji format. Adjust to match your own custom emoji.
-nav = Navigation(":discord:743511195197374563", "👎", "\U0001F44D")
+menu = DefaultMenu("\U0001F44D", "👎", ":discord:743511195197374563")
 
 # Custom ending note
 ending_note = "The ending not from {ctx.bot.user.name}\nFor command {help.clean_prefix}{help.invoked_with}"
@@ -21,7 +20,7 @@ bot = commands.Bot(
     description="this is the bots descripton",
 )
 bot.help_command = PrettyHelp(
-    navigation=nav,
+    menu=menu,
     ending_note=ending_note,
 )
 
