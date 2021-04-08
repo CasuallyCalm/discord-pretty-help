@@ -24,7 +24,7 @@ bot = commands.Bot(command_prefix="!", help_command=PrettyHelp())
 ### Added Optional Args
 
 - `active_time` - Set the time (in seconds) that the message will be active default is 30s
-- `paginator` - Optionally set a custom function for pagination to use instead of the built-in paginator
+- `menu` - Optionally set a custom function for pagination to use instead of the built-in menu
 - `color` - Set the default embed color
 - `ending_note` - Set the footer of the embed. Ending notes are fed a `commands.Context` (`ctx`) and a `PrettyHelp` (`help`) instance for more advanced customization.
 - `index_title` - Set the index page name default is *"Categories"*
