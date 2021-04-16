@@ -189,7 +189,7 @@ class Paginator:
         if include:
             index = self._new_page(title, bot.description or "")
 
-            for page_no, page in enumerate(self._pages, 2):
+            for page_no, page in enumerate(self._pages, 1):
                 index.add_field(
                     name=f"{page_no}) {page.title}",
                     value=f'{self.prefix}{page.description or "No Description"}{self.suffix}',
