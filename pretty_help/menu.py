@@ -91,7 +91,7 @@ class DefaultMenu(PrettyMenu):
         return self._dict.__iter__()
 
     def __repr__(self) -> str:
-        return f"<Navigation left:{self.page_left} right:{self.page_right} remove:{self.remove}>"
+        return f"<DefaultMenu left:{self.page_left} right:{self.page_right} remove:{self.remove}>"
 
     async def send_pages(
         self,
