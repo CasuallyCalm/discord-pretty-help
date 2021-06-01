@@ -13,7 +13,7 @@ dotenv.load_dotenv("./tests/.env")
 menu = DefaultMenu("\U0001F44D", "👎", ":discord:743511195197374563")
 
 # Custom ending note
-ending_note = "The ending not from {ctx.bot.user.name}\nFor command {help.clean_prefix}{help.invoked_with}"
+ending_note = "The ending note from {ctx.bot.user.name}\nFor command {help.clean_prefix}{help.invoked_with}"
 
 bot = commands.Bot(
     command_prefix="!",
