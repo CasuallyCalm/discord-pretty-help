@@ -294,7 +294,10 @@ class PrettyHelp(HelpCommand):
     async def send_pages(self):
         pages = self.paginator.pages
         destination = self.get_destination()
-        await self.menu.send_pages(self.context, destination, pages)
+        if not pages:
+            await destination.send(f"```{self.get_ending_note()}```")
+        else:
+            await self.menu.send_pages(self.context, destination, pages)
 
     def get_destination(self):
         ctx = self.context

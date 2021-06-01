@@ -66,7 +66,8 @@ the arrow embeds. The message is unresponsive after 30s of no activity, it'll re
 
 # Changelog
 
-## [1.3.0]
+## [1.3.1]
+- Add bot response if no category is found
 - Replaced `Navigation` with `DefaultMenu`
 - Allowed for custom Menus to be used, should inherit from `PrettyMenu` and must use `send_pages()` method
 - `active_time` is now part of the `DefaultMenu` args
