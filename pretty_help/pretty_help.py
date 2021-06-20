@@ -189,7 +189,7 @@ class Paginator:
         if include:
             index = self._new_page(title, bot.description or "")
 
-            for page_no, page in enumerate(self._pages, 2):
+            for page_no, page in enumerate(self._pages, 1):
                 index.add_field(
                     name=f"{page_no}) {page.title}",
                     value=f'{self.prefix}{page.description or "No Description"}{self.suffix}',
@@ -258,7 +258,7 @@ class PrettyHelp(HelpCommand):
         )
         self.dm_help = options.pop("dm_help", False)
         self.index_title = options.pop("index_title", "Categories")
-        self.no_category = options.pop("no_category", "No Category")
+        self.no_category = options.pop("no_category", "Main Cog")
         self.sort_commands = options.pop("sort_commands", True)
         self.show_index = options.pop("show_index", True)
         self.menu = options.pop("menu", DefaultMenu())
