@@ -15,14 +15,9 @@ menu = DefaultMenu("\U0001F44D", "👎", ":discord:743511195197374563")
 # Custom ending note
 ending_note = "The ending note from {ctx.bot.user.name}\nFor command {help.clean_prefix}{help.invoked_with}"
 
-bot = commands.Bot(
-    command_prefix="!",
-    description="this is the bots descripton",
-)
-bot.help_command = PrettyHelp(
-    menu=menu,
-    ending_note=ending_note,
-)
+bot = commands.Bot(command_prefix="!", description="this is the bots descripton",)
+bot.help_command = PrettyHelp(menu=menu, ending_note=ending_note)
+# bot.help_command = PrettyHelp(menu=menu, ending_note=ending_note, show_index-False)
 
 
 @bot.event

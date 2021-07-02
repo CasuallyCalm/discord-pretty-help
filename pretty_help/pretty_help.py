@@ -4,6 +4,7 @@ from random import randint
 from typing import List, Union
 
 import discord
+from discord.channel import _single_delete_strategy
 from discord.ext import commands
 from discord.ext.commands.help import HelpCommand
 
@@ -27,13 +28,16 @@ class Paginator:
         The footer in of the help embed
     """
 
-    def __init__(self, color=0):
+    def __init__(
+        self, show_index, color=0,
+    ):
         self.ending_note = None
         self.color = color
         self.char_limit = 6000
         self.field_limit = 25
         self.prefix = "```"
         self.suffix = "```"
+        self.show_index = show_index
         self.clear()
 
     def clear(self):
@@ -177,7 +181,7 @@ class Paginator:
 
         self._add_command_fields(page, group.name, commands_list)
 
-    def add_index(self, include: bool, title: str, bot: commands.Bot):
+    def add_index(self, title: str, bot: commands.Bot):
         """
         Add an index page to the response of the bot_help command
 
@@ -186,10 +190,10 @@ class Paginator:
             title (str): The title of the index page
             bot (commands.Bot): The bot instance
         """
-        if include:
+        if self.show_index:
             index = self._new_page(title, bot.description or "")
 
-            for page_no, page in enumerate(self._pages, 2):
+            for page_no, page in enumerate(self._pages, 1):
                 index.add_field(
                     name=f"{page_no}) {page.title}",
                     value=f'{self.prefix}{page.description or "No Description"}{self.suffix}',
@@ -206,11 +210,14 @@ class Paginator:
         if len(self._pages) == 1:
             return self._pages
         lst = []
-        for page_no, page in enumerate(self._pages, start=1):
+        start = 1 if not self.show_index else 0
+        pages = len(self._pages) if not self.show_index else len(self._pages) - 1
+        for page_no, page in enumerate(self._pages, start):
             page: discord.Embed
-            page.description = (
-                f"`Page: {page_no}/{len(self._pages)}`\n{page.description}"
-            )
+            if self.show_index and page_no == 0:
+                pass
+            else:
+                page.description = f"`Page: {page_no}/{pages}`\n{page.description}"
             lst.append(page)
         return lst
 
@@ -260,9 +267,10 @@ class PrettyHelp(HelpCommand):
         self.index_title = options.pop("index_title", "Categories")
         self.no_category = options.pop("no_category", "No Category")
         self.sort_commands = options.pop("sort_commands", True)
-        self.show_index = options.pop("show_index", True)
         self.menu = options.pop("menu", DefaultMenu())
-        self.paginator = Paginator(color=self.color)
+        self.paginator = Paginator(
+            color=self.color, show_index=options.pop("show_index", True)
+        )
         self.ending_note = options.pop("ending_note", "")
 
         super().__init__(**options)
@@ -317,8 +325,7 @@ class PrettyHelp(HelpCommand):
                 else bot.commands
             )
             for cmd in await self.filter_commands(
-                help_filtered,
-                sort=self.sort_commands,
+                help_filtered, sort=self.sort_commands,
             ):
                 mapping[cmd.cog].append(cmd)
             self.paginator.add_cog(self.no_category, mapping.pop(None))
@@ -330,7 +337,7 @@ class PrettyHelp(HelpCommand):
             )
             for cog, command_list in sorted_map:
                 self.paginator.add_cog(cog, command_list)
-            self.paginator.add_index(self.show_index, self.index_title, bot)
+            self.paginator.add_index(self.index_title, bot)
         await self.send_pages()
 
     async def send_command_help(self, command: commands.Command):
