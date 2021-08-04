@@ -1,4 +1,4 @@
-__all__ = ["PrettyHelp"]
+__all__ = ["PrettyHelp", "Paginator"]
 
 from random import randint
 from typing import List, Union
