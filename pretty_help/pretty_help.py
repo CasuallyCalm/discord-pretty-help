@@ -274,9 +274,9 @@ class PrettyHelp(HelpCommand):
         self.no_category = options.pop("no_category", "No Category")
         self.sort_commands = options.pop("sort_commands", True)
         self.menu = options.pop("menu", DefaultMenu())
-        self.paginator = Paginator(
+        self.paginator = options.pop("paginator", Paginator(
             color=self.color, show_index=options.pop("show_index", True)
-        )
+        ))
         self.ending_note = options.pop("ending_note", "")
 
         super().__init__(**options)
