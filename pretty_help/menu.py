@@ -41,15 +41,22 @@ class DefaultMenu(PrettyMenu):
     Args:
         active_time: :class: `int`
             The time in seconds the menu will be active for. Default is 10.
+        delete_after_timeout: :class: `bool`
+            Delete the message after `active_time` instead of removing reactions.
         page_left (str, optional): The emoji to use for going left. Defaults to "◀".
         page_right (str, optional): The emoji to use for going right. Defaults to "▶".
         remove (str, optional): The emoji to use for removing the help message. Defaults to "❌".
     """
 
     def __init__(
-        self, page_left="◀", page_right="▶", remove="❌", active_time=30
+        self,
+        page_left="◀",
+        page_right="▶",
+        remove="❌",
+        active_time=30,
+        delete_after_timeout=False,
     ) -> None:
-
+        self.delete_after_timeout = delete_after_timeout
         self.page_left = self.__match(page_left)
         self.page_right = self.__match(page_right)
         self.remove = self.__match(remove)
@@ -152,8 +159,11 @@ class DefaultMenu(PrettyMenu):
 
                 except asyncio.TimeoutError:
                     navigating = False
-                    for emoji in self:
-                        try:
-                            await message.remove_reaction(emoji, bot.user)
-                        except Exception:
-                            pass
+                    if self.delete_after_timeout:
+                        await message.delete()
+                    else:
+                        for emoji in self:
+                            try:
+                                await message.remove_reaction(emoji, bot.user)
+                            except Exception:
+                                pass
