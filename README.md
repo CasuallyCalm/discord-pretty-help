@@ -2,7 +2,7 @@
 
 # discord-pretty-help
 
-An embed version of the built in help command for discord.py
+An embed version of the built in help command for discord.py and probably other forks of discord.py ie Nextcord, Novus, pycord, etc.
 
 Inspired by the DefaultHelpCommand that discord.py uses, but revised for embeds and additional sorting on individual pages that can be "scrolled" through with reactions.
 
@@ -36,6 +36,7 @@ bot = commands.Bot(command_prefix="!", help_command=PrettyHelp())
 ### pretty_help.DefaultHelp args
 
 - `active_time` - Set the time (in seconds) that the message will be active. Default is 30s
+- `delete_after_timeout` - Delete the message after `active_time` instead of removing reactions. Default `False`
 - `page_left` - The emoji to use to page left
 - `page_right` - The emoji to use to page right
 - `remove` - The emoji to use to remove the help message
@@ -66,8 +67,9 @@ the arrow embeds. The message is unresponsive after 30s of no activity, it'll re
 
 # Changelog
 
-## [1.3.2]
-- Due to multiple requests, page numbers no longer include the *Index* page in the final count or numbering.
+## [1.3.3]
+- Added `delete_after_timeout` kwarg so messages are deleted after the time limit instead of just removing emojis
+- Added command cooldown information to pages
 
 
 

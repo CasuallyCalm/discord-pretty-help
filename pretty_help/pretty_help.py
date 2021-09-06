@@ -29,7 +29,9 @@ class Paginator:
     """
 
     def __init__(
-        self, show_index, color=0,
+        self,
+        show_index,
+        color=0,
     ):
         self.ending_note = None
         self.color = color
@@ -54,11 +56,10 @@ class Paginator:
         Returns:
             bool: Will return True if the emebed isn't too large
         """
-        check = (
+        return (
             len(embed) + sum(len(char) for char in chars if char) < self.char_limit
             and len(embed.fields) < self.field_limit
         )
-        return check
 
     def _new_page(self, title: str, description: str):
         """
@@ -162,6 +163,13 @@ class Paginator:
                 value=f"{self.prefix}{aliases}{self.suffix}",
                 inline=False,
             )
+        cooldown: commands.Cooldown = command._buckets._cooldown
+        if cooldown:
+            page.add_field(
+                name="Cooldown",
+                value=f"`{cooldown.rate} time(s) every {cooldown.per} second(s)`",
+            )
+
         page.add_field(
             name="Usage", value=f"{self.prefix}{signature}{self.suffix}", inline=False
         )
@@ -214,9 +222,7 @@ class Paginator:
         pages = len(self._pages) if not self.show_index else len(self._pages) - 1
         for page_no, page in enumerate(self._pages, start):
             page: discord.Embed
-            if self.show_index and page_no == 0:
-                pass
-            else:
+            if not self.show_index or page_no != 0:
                 page.description = f"`Page: {page_no}/{pages}`\n{page.description}"
             lst.append(page)
         return lst
@@ -241,7 +247,7 @@ class PrettyHelp(HelpCommand):
         message becomes too long (dictated by more than :attr:`dm_help_threshold` characters).
         Defaults to ``False``.
     menu: Optional[:class:`pretty_help.PrettyMenu`]
-        The menu to use for navigating pages. Defautl is :class:`DefaultMenu`
+        The menu to use for navigating pages. Defaut is :class:`pretty_help.DefaultMenu`
         Custom menus should inherit from :class:`pretty_help.PrettyMenu`
     ending_note: Optional[:class:`str`]
         The footer in of the help embed
@@ -318,14 +324,15 @@ class PrettyHelp(HelpCommand):
         bot = self.context.bot
         channel = self.get_destination()
         async with channel.typing():
-            mapping = dict((name, []) for name in mapping)
+            mapping = {name: [] for name in mapping}
             help_filtered = (
                 filter(lambda c: c.name != "help", bot.commands)
                 if len(bot.commands) > 1
                 else bot.commands
             )
             for cmd in await self.filter_commands(
-                help_filtered, sort=self.sort_commands,
+                help_filtered,
+                sort=self.sort_commands,
             ):
                 mapping[cmd.cog].append(cmd)
             self.paginator.add_cog(self.no_category, mapping.pop(None))
@@ -351,7 +358,6 @@ class PrettyHelp(HelpCommand):
             filtered = await self.filter_commands(
                 group.commands, sort=self.sort_commands
             )
-            # if filtered:
             self.paginator.add_group(group, filtered)
         await self.send_pages()
 
