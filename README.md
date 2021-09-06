@@ -68,7 +68,6 @@ the arrow embeds. The message is unresponsive after 30s of no activity, it'll re
 # Changelog
 
 ## [1.3.3]
-- Added `case_insensitive` kwarg for Commands and Categories to be case insensitive
 - Added `delete_after_timeout` kwarg so messages are deleted after the time limit instead of just removing emojis
 - Added command cooldown information to pages
 

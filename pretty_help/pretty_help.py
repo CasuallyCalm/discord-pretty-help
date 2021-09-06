@@ -247,7 +247,7 @@ class PrettyHelp(HelpCommand):
         message becomes too long (dictated by more than :attr:`dm_help_threshold` characters).
         Defaults to ``False``.
     menu: Optional[:class:`pretty_help.PrettyMenu`]
-        The menu to use for navigating pages. Defautl is :class:`DefaultMenu`
+        The menu to use for navigating pages. Defaut is :class:`pretty_help.DefaultMenu`
         Custom menus should inherit from :class:`pretty_help.PrettyMenu`
     ending_note: Optional[:class:`str`]
         The footer in of the help embed
@@ -358,7 +358,6 @@ class PrettyHelp(HelpCommand):
             filtered = await self.filter_commands(
                 group.commands, sort=self.sort_commands
             )
-            # if filtered:
             self.paginator.add_group(group, filtered)
         await self.send_pages()
 
