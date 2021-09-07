@@ -138,7 +138,7 @@ class Paginator:
         if command.description:
             info += command.description + "\n\n"
         if command.help:
-            info += command.help + command.usage
+            info += command.help + ' ' + command.signature
         if not info:
             info = "None"
         return info
