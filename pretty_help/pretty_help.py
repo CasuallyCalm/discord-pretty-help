@@ -4,7 +4,6 @@ from random import randint
 from typing import List, Union
 
 import discord
-from discord.channel import _single_delete_strategy
 from discord.ext import commands
 from discord.ext.commands.help import HelpCommand
 
@@ -303,7 +302,7 @@ class PrettyHelp(HelpCommand):
             "Type {help.clean_prefix}{help.invoked_with} command for more info on a command.\n"
             "You can also type {help.clean_prefix}{help.invoked_with} category for more info on a category."
         )
-        return note.format(ctx=self.context, help=self)
+        return note.format(ctx=self.context, help=self if hasattr(self, "clean_prefix") else self.context)
 
     async def send_pages(self):
         pages = self.paginator.pages
