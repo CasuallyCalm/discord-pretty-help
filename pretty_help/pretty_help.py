@@ -193,7 +193,6 @@ class Paginator:
         Add an index page to the response of the bot_help command
 
         Args:
-            include (bool): Include the index page or not
             title (str): The title of the index page
             bot (commands.Bot): The bot instance
         """
