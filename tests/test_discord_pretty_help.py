@@ -3,11 +3,19 @@ Note: Rename `env.example` to `.env` and enter your token then run `poetry run t
 """
 import os
 
+import discord
+from discord import app_commands
 from discord.ext import commands
 from pretty_help import DefaultMenu, PrettyHelp
 import dotenv
 
 dotenv.load_dotenv("./tests/.env")
+
+# for testing standard message based commands, ie !ping, make sure the message content intent ON in the discord bot app page
+intents = discord.Intents.default()
+intents.message_content = True
+
+MY_GUILD = discord.Object(id=os.environ.get("GUILD_ID"))
 
 # ":discord:743511195197374563" is a custom discord emoji format. Adjust to match your own custom emoji.
 menu = DefaultMenu(
@@ -24,9 +32,11 @@ ending_note = "The ending note from {ctx.bot.user.name}\nFor command {help.clean
 bot = commands.Bot(
     command_prefix="!",
     description="this is the bots descripton",
+    intents=intents,
+    help_command=PrettyHelp(menu=menu, ending_note=ending_note),
 )
-bot.help_command = PrettyHelp(menu=menu, ending_note=ending_note)
-# bot.help_command = PrettyHelp(menu=menu, ending_note=ending_note, show_index=False)
+
+# bot.help_command = PrettyHelp(menu=menu, ending_note=ending_note, show_index=False) # alternate config
 
 
 @bot.event
@@ -35,7 +45,8 @@ async def on_ready():
     print(f"With ID: {bot.user.id}")
 
 
-class TestCog(commands.Cog):
+####### Message command Stuff
+class MessageCommandCog(commands.Cog):
     """This is a cog for testing purposes"""
 
     @commands.command(description="This is a command description")
@@ -53,7 +64,7 @@ class TestCog(commands.Cog):
         await ctx.send("This is a test command")
 
 
-class ACog(commands.Cog, name="Z Cog"):
+class MessageGroupCog(commands.Cog, name="Z Cog"):
     """This is a cog for testing purposes"""
 
     @commands.group(description="This is a group description")
@@ -66,7 +77,7 @@ class ACog(commands.Cog, name="Z Cog"):
         await ctx.send("this is a subcommand")
 
 
-class LargeCog(commands.Cog):
+class LargeMessageCog(commands.Cog):
     @commands.command()
     async def command00(self, ctx):
         print("command 00")
@@ -188,6 +199,80 @@ class LargeCog(commands.Cog):
         print("command 29")
 
 
+####### App Command stuff
+class AppCommandCog(commands.Cog):
+    """And Cog with app commands and a message command"""
+
+    @commands.command()
+    async def messag_command(self, ctx: commands.Context):
+        """normal message command with app commands"""
+        await ctx.send("normal message command with app commands")
+
+    @app_commands.command()
+    async def _app_command(self, interaction: discord.Interaction):
+        """This is an app command description"""
+        await interaction.response.send_message("This is an app command")
+
+    @app_commands.command(nsfw=True)
+    async def nsfw_app_command(self, interaction: discord.Interaction):
+        """This is an app command description and is NSFW"""
+        await interaction.response.send_message("This is an app command, also NSFW")
+
+    @app_commands.command()
+    @app_commands.describe(message="The message the will be repeated")
+    async def repeat(self, interaction: discord.Interaction, message: str):
+        await interaction.response.send_message(message)
+
+
+class GroupAppCommandCog(commands.GroupCog):
+    """A group of app commands in a cog"""
+
+    @app_commands.command()
+    async def _app_command(self, interaction: discord.Interaction):
+        """This is an app command description"""
+        await interaction.response.send_message("This is an app command")
+
+    @app_commands.command(nsfw=True)
+    async def nsfw_app_command(self, interaction: discord.Interaction):
+        """This is an app command description and is NSFW"""
+        await interaction.response.send_message("This is an app command, also NSFW")
+
+    @app_commands.command()
+    @app_commands.describe(message="The message the will be repeated")
+    async def repeat(self, interaction: discord.Interaction, message: str):
+        await interaction.response.send_message(message)
+
+
+######## Context Menus
+
+
+@bot.tree.context_menu(nsfw=True)
+async def nsfw_reply(interaction: discord.Interaction, message: discord.Message):
+    await message.reply(f"That's a nice message! - {interaction.user.mention}")
+
+
+@bot.tree.context_menu(name="reply")
+async def reply(interaction: discord.Interaction, message: discord.Message):
+    await message.reply(f"That's a nice message! - {interaction.user.mention}")
+
+
+@bot.tree.context_menu(nsfw=True)
+async def nsfw_ban(interaction: discord.Interaction, member: discord.Member):
+    await interaction.response.send_message(
+        f"Ban {member.display_name}?", ephemeral=True
+    )
+
+
+@bot.tree.context_menu()
+async def ban(interaction: discord.Interaction, member: discord.Member):
+    await interaction.response.send_message(
+        f"Ban {member.display_name}?", ephemeral=True
+    )
+
+
+########
+
+
 @bot.command()
 async def test(ctx: commands.Context):
     await ctx.send("this is the test command")
@@ -201,11 +286,21 @@ async def cooldown_command(ctx: commands.Context):
     await ctx.send("This command has a cooldown")
 
 
+async def setup():
+    await bot.add_cog(MessageCommandCog())
+    await bot.add_cog(MessageGroupCog())
+    await bot.add_cog(LargeMessageCog())
+    await bot.add_cog(AppCommandCog())
+    await bot.add_cog(GroupAppCommandCog())
+    bot.tree.copy_global_to(guild=MY_GUILD)
+    await bot.tree.sync(guild=MY_GUILD)
+
+
+bot.setup_hook = setup
+
+
 def run():
-    bot.add_cog(TestCog(bot))
-    bot.add_cog(ACog(bot))
-    bot.add_cog(LargeCog(bot))
-    bot.run(os.environ["TOKEN"])
+    bot.run(os.environ.get("TOKEN"))
 
 
 if __name__ == "__main__":
