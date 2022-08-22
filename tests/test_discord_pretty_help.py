@@ -22,18 +22,20 @@ menu = DefaultMenu(
     "\U0001F44D",
     "👎",
     ":discord:743511195197374563",
-    active_time=5,
-    delete_after_timeout=True,
+    active_time=60,
+    delete_after_timeout=False,
 )
 
 # Custom ending note
 ending_note = "The ending note from {ctx.bot.user.name}\nFor command {help.clean_prefix}{help.invoked_with}"
 
+help = PrettyHelp(menu=menu, ending_note=ending_note)
+
 bot = commands.Bot(
     command_prefix="!",
     description="this is the bots descripton",
     intents=intents,
-    help_command=PrettyHelp(menu=menu, ending_note=ending_note),
+    help_command=help,
 )
 
 # bot.help_command = PrettyHelp(menu=menu, ending_note=ending_note, show_index=False) # alternate config
@@ -46,7 +48,7 @@ async def on_ready():
 
 
 ####### Message command Stuff
-class MessageCommandCog(commands.Cog):
+class TextCommandCog(commands.Cog):
     """This is a cog for testing purposes"""
 
     @commands.command(description="This is a command description")
@@ -64,20 +66,20 @@ class MessageCommandCog(commands.Cog):
         await ctx.send("This is a test command")
 
 
-class MessageGroupCog(commands.Cog, name="Z Cog"):
+class TextGroupCog(commands.Cog, name="Z Cog"):
     """This is a cog for testing purposes"""
 
     @commands.group(description="This is a group description")
-    async def atestcommand(self, ctx: commands.Context):
+    async def groupCommand1(self, ctx: commands.Context):
         """This is group help"""
         await ctx.send("This is a test command")
 
-    @atestcommand.command()
-    async def atestgroupcommand(self, ctx):
+    @groupCommand1.command()
+    async def subCommand1(self, ctx):
         await ctx.send("this is a subcommand")
 
 
-class LargeMessageCog(commands.Cog):
+class LargeTextCommandCog(commands.Cog):
     @commands.command()
     async def command00(self, ctx):
         print("command 00")
@@ -204,7 +206,7 @@ class AppCommandCog(commands.Cog):
     """And Cog with app commands and a message command"""
 
     @commands.command()
-    async def messag_command(self, ctx: commands.Context):
+    async def text_command(self, ctx: commands.Context):
         """normal message command with app commands"""
         await ctx.send("normal message command with app commands")
 
@@ -287,9 +289,9 @@ async def cooldown_command(ctx: commands.Context):
 
 
 async def setup():
-    await bot.add_cog(MessageCommandCog())
-    await bot.add_cog(MessageGroupCog())
-    await bot.add_cog(LargeMessageCog())
+    await bot.add_cog(TextCommandCog())
+    await bot.add_cog(TextGroupCog())
+    await bot.add_cog(LargeTextCommandCog())
     await bot.add_cog(AppCommandCog())
     await bot.add_cog(GroupAppCommandCog())
     bot.tree.copy_global_to(guild=MY_GUILD)
