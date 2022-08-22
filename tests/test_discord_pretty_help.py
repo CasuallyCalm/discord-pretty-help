@@ -6,8 +6,10 @@ import os
 import discord
 from discord import app_commands
 from discord.ext import commands
-from pretty_help import DefaultMenu, PrettyHelp
+from pretty_help import EmojiMenu, PrettyHelp
 import dotenv
+
+from pretty_help.emoji_menu import EmojiMenu
 
 dotenv.load_dotenv("./tests/.env")
 
@@ -18,7 +20,7 @@ intents.message_content = True
 MY_GUILD = discord.Object(id=os.environ.get("GUILD_ID"))
 
 # ":discord:743511195197374563" is a custom discord emoji format. Adjust to match your own custom emoji.
-menu = DefaultMenu(
+menu = EmojiMenu(
     "\U0001F44D",
     "👎",
     ":discord:743511195197374563",

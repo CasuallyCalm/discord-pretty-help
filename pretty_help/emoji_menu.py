@@ -1,4 +1,4 @@
-__all__ = ["DefaultMenu", "PrettyMenu"]
+__all__ = ["EmojiMenu"]
 
 import asyncio
 import re
@@ -8,23 +8,10 @@ from typing import List
 import discord
 from discord.ext import commands
 
-
-class PrettyMenu(metaclass=ABCMeta):
-    """
-    A base class for menus used with PrettyHelp
-    """
-
-    async def send_pages(
-        self,
-        ctx: commands.Context,
-        destination: discord.abc.Messageable,
-        pages: List[discord.Embed],
-    ):
-        """The function called by :class:`PrettyHelp` that will send pages"""
-        pass
+from .abc_menu import PrettyMenu
 
 
-class DefaultMenu(PrettyMenu):
+class EmojiMenu(PrettyMenu):
     """The default navigation menu for PrettyHelp.
 
     Accepts standard emojis in multiple ways:
@@ -98,7 +85,7 @@ class DefaultMenu(PrettyMenu):
         return self._dict.__iter__()
 
     def __repr__(self) -> str:
-        return f"<DefaultMenu left:{self.page_left} right:{self.page_right} remove:{self.remove}>"
+        return f"<EmojiMenu left:{self.page_left} right:{self.page_right} remove:{self.remove}>"
 
     async def send_pages(
         self,

@@ -7,25 +7,25 @@ import discord
 from discord.ext import commands
 from discord.ext.commands.help import HelpCommand
 
-from .menu import DefaultMenu
+from .emoji_menu import EmojiMenu
 
 
-class NewHelp(commands.HelpCommand, commands.Cog):
-    def _add_to_bot(self, bot: commands.Bot) -> None:
-        super()._add_to_bot(bot)
-        self.bot = bot
-        bot.tree.add_command(self._app_command_callback)
+# class NewHelp(commands.HelpCommand, commands.Cog):
+#     def _add_to_bot(self, bot: commands.Bot) -> None:
+#         super()._add_to_bot(bot)
+#         self.bot = bot
+#         bot.tree.add_command(self._app_command_callback)
 
-    def _remove_from_bot(self, bot) -> None:
-        super()._remove_from_bot(bot)
-        bot.tree.remove_command(self._app_command_callback.name)
+#     def _remove_from_bot(self, bot) -> None:
+#         super()._remove_from_bot(bot)
+#         bot.tree.remove_command(self._app_command_callback.name)
 
-    @app_commands.command(name="help")
-    async def _app_command_callback(self, interaction: discord.Interaction):
-        await interaction.response.send_message("help command")
+#     @app_commands.command(name="help")
+#     async def _app_command_callback(self, interaction: discord.Interaction):
+#         await interaction.response.send_message("help command")
 
-    async def command_callback(self, ctx, /, *, command=None) -> None:
-        await ctx.send("this is a dumb help command")
+#     async def command_callback(self, ctx, /, *, command=None) -> None:
+#         await ctx.send("this is a dumb help command")
 
 
 class Paginator:
@@ -295,7 +295,7 @@ class PrettyHelp(HelpCommand):
         self.index_title = options.pop("index_title", "Categories")
         self.no_category = options.pop("no_category", "No Category")
         self.sort_commands = options.pop("sort_commands", True)
-        self.menu = options.pop("menu", DefaultMenu())
+        self.menu = options.pop("menu", EmojiMenu())
         self.paginator = Paginator(
             color=self.color, show_index=options.pop("show_index", True)
         )
