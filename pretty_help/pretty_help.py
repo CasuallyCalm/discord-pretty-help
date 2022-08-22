@@ -10,6 +10,24 @@ from discord.ext.commands.help import HelpCommand
 from .menu import DefaultMenu
 
 
+class NewHelp(commands.HelpCommand, commands.Cog):
+    def _add_to_bot(self, bot: commands.Bot) -> None:
+        super()._add_to_bot(bot)
+        self.bot = bot
+        bot.tree.add_command(self._app_command_callback)
+
+    def _remove_from_bot(self, bot) -> None:
+        super()._remove_from_bot(bot)
+        bot.tree.remove_command(self._app_command_callback.name)
+
+    @app_commands.command(name="help")
+    async def _app_command_callback(self, interaction: discord.Interaction):
+        await interaction.response.send_message("help command")
+
+    async def command_callback(self, ctx, /, *, command=None) -> None:
+        await ctx.send("this is a dumb help command")
+
+
 class Paginator:
     """A class that creates pages for Discord messages.
 
@@ -102,7 +120,11 @@ class Paginator:
         self._add_command_fields(embed, page_title, commands_list)
 
     def _add_command_fields(
-        self, embed: discord.Embed, page_title: str, commands: List[commands.Command]
+        self,
+        embed: discord.Embed,
+        page_title: str,
+        commands: List[commands.Command],
+        group: bool = False,
     ):
         """
         Adds command fields to Category/Cog and Command Group pages
@@ -125,7 +147,7 @@ class Paginator:
                 embed = self._new_page(page_title, embed.description)
 
             embed.add_field(
-                name=command.name,
+                name=command.name if not group else f"🔗 {command.name}",
                 value=f'{self.prefix}{command.short_doc or "No Description"}{self.suffix}',
                 inline=False,
             )
@@ -186,14 +208,13 @@ class Paginator:
             group.name, f"{self.prefix}{self.__command_info(group)}{self.suffix}" or ""
         )
 
-        self._add_command_fields(page, group.name, commands_list)
+        self._add_command_fields(page, group.name, commands_list, group=True)
 
     def add_index(self, title: str, bot: commands.Bot):
         """
         Add an index page to the response of the bot_help command
 
         Args:
-            include (bool): Include the index page or not
             title (str): The title of the index page
             bot (commands.Bot): The bot instance
         """
@@ -236,6 +257,8 @@ class PrettyHelp(HelpCommand):
     Attributes
     ------------
 
+    case_insensitive: :class: `bool`
+        Ignore case when searching for commands ie 'HELP' --> 'help' Defaults to ``False``.
     color: :class: `discord.Color`
         The color to use for the help embeds. Default is a random color.
     dm_help: Optional[:class:`bool`]
@@ -276,6 +299,7 @@ class PrettyHelp(HelpCommand):
         self.paginator = Paginator(
             color=self.color, show_index=options.pop("show_index", True)
         )
+        self.case_insensitive = options.pop("case_insensitive", False)
         self.ending_note = options.pop("ending_note", "")
 
         super().__init__(**options)
@@ -302,7 +326,10 @@ class PrettyHelp(HelpCommand):
             "Type {help.clean_prefix}{help.invoked_with} command for more info on a command.\n"
             "You can also type {help.clean_prefix}{help.invoked_with} category for more info on a category."
         )
-        return note.format(ctx=self.context, help=self if hasattr(self, "clean_prefix") else self.context)
+        return note.format(
+            ctx=self.context,
+            help=self if hasattr(self, "clean_prefix") else self.context,
+        )
 
     async def send_pages(self):
         pages = self.paginator.pages
