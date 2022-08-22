@@ -2,7 +2,9 @@
 
 # discord-pretty-help
 
-An embed version of the built in help command for discord.py and probably other forks of discord.py ie Nextcord, Novus, pycord, etc.
+An embed version of the built in help command for discord.py
+
+
 
 Inspired by the DefaultHelpCommand that discord.py uses, but revised for embeds and additional sorting on individual pages that can be "scrolled" through with reactions.
 
@@ -64,6 +66,9 @@ The basic `help` command will break commands up by cogs. Each cog will be a diff
 the arrow embeds. The message is unresponsive after 30s of no activity, it'll remove the reactions to let you know.
 
 ![example](https://raw.githubusercontent.com/stroupbslayen/discord-pretty-help/master/images/example.gif)
+
+## Forks for other discord.py based libraries:
+* [nextcord-pretty-help](https://github.com/squigjess/nextcord-pretty-help)
 
 # Changelog
 
