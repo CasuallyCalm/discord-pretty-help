@@ -11,7 +11,7 @@ import dotenv
 
 dotenv.load_dotenv("./tests/.env")
 
-# for testing standard message based commands, ie !ping, make sure the message content intent ON in the discord bot app page
+# for testing standard text based commands, ie !ping, make sure the message content intent ON in the discord bot app page
 intents = discord.Intents.default()
 intents.message_content = True
 
@@ -47,7 +47,7 @@ async def on_ready():
     print(f"With ID: {bot.user.id}")
 
 
-####### Message command Stuff
+####### Text command Stuff
 class TextCommandCog(commands.Cog):
     """This is a cog for testing purposes"""
 
@@ -75,129 +75,129 @@ class TextGroupCog(commands.Cog, name="Z Cog"):
         await ctx.send("This is a test command")
 
     @groupCommand1.command()
-    async def subCommand1(self, ctx):
+    async def subCommand1(self, ctx: commands.Context):
         await ctx.send("this is a subcommand")
 
 
 class LargeTextCommandCog(commands.Cog):
     @commands.command()
-    async def command00(self, ctx):
+    async def command00(self, ctx: commands.Context):
         print("command 00")
 
     @commands.command()
-    async def command01(self, ctx):
+    async def command01(self, ctx: commands.Context):
         print("command 01")
 
     @commands.command()
-    async def command02(self, ctx):
+    async def command02(self, ctx: commands.Context):
         print("command 02")
 
     @commands.command()
-    async def command03(self, ctx):
+    async def command03(self, ctx: commands.Context):
         print("command 03")
 
     @commands.command()
-    async def command04(self, ctx):
+    async def command04(self, ctx: commands.Context):
         print("command 04")
 
     @commands.command()
-    async def command05(self, ctx):
+    async def command05(self, ctx: commands.Context):
         print("command 05")
 
     @commands.command()
-    async def command06(self, ctx):
+    async def command06(self, ctx: commands.Context):
         print("command 06")
 
     @commands.command()
-    async def command07(self, ctx):
+    async def command07(self, ctx: commands.Context):
         print("command 07")
 
     @commands.command()
-    async def command08(self, ctx):
+    async def command08(self, ctx: commands.Context):
         print("command 08")
 
     @commands.command()
-    async def command09(self, ctx):
+    async def command09(self, ctx: commands.Context):
         print("command 09")
 
     @commands.command()
-    async def command10(self, ctx):
+    async def command10(self, ctx: commands.Context):
         print("command 10")
 
     @commands.command()
-    async def command11(self, ctx):
+    async def command11(self, ctx: commands.Context):
         print("command 11")
 
     @commands.command()
-    async def command12(self, ctx):
+    async def command12(self, ctx: commands.Context):
         print("command 12")
 
     @commands.command()
-    async def command13(self, ctx):
+    async def command13(self, ctx: commands.Context):
         print("command 13")
 
     @commands.command()
-    async def command14(self, ctx):
+    async def command14(self, ctx: commands.Context):
         print("command 14")
 
     @commands.command()
-    async def command15(self, ctx):
+    async def command15(self, ctx: commands.Context):
         print("command 15")
 
     @commands.command()
-    async def command16(self, ctx):
+    async def command16(self, ctx: commands.Context):
         print("command 16")
 
     @commands.command()
-    async def command17(self, ctx):
+    async def command17(self, ctx: commands.Context):
         print("command 17")
 
     @commands.command()
-    async def command18(self, ctx):
+    async def command18(self, ctx: commands.Context):
         print("command 18")
 
     @commands.command()
-    async def command19(self, ctx):
+    async def command19(self, ctx: commands.Context):
         print("command 19")
 
     @commands.command()
-    async def command20(self, ctx):
+    async def command20(self, ctx: commands.Context):
         print("command 20")
 
     @commands.command()
-    async def command21(self, ctx):
+    async def command21(self, ctx: commands.Context):
         print("command 21")
 
     @commands.command()
-    async def command22(self, ctx):
+    async def command22(self, ctx: commands.Context):
         print("command 22")
 
     @commands.command()
-    async def command23(self, ctx):
+    async def command23(self, ctx: commands.Context):
         print("command 23")
 
     @commands.command()
-    async def command24(self, ctx):
+    async def command24(self, ctx: commands.Context):
         print("command 24")
 
     @commands.command()
-    async def command25(self, ctx):
+    async def command25(self, ctx: commands.Context):
         print("command 25")
 
     @commands.command()
-    async def command26(self, ctx):
+    async def command26(self, ctx: commands.Context):
         print("command 26")
 
     @commands.command()
-    async def command27(self, ctx):
+    async def command27(self, ctx: commands.Context):
         print("command 27")
 
     @commands.command()
-    async def command28(self, ctx):
+    async def command28(self, ctx: commands.Context):
         print("command 28")
 
     @commands.command()
-    async def command29(self, ctx):
+    async def command29(self, ctx: commands.Context):
         print("command 29")
 
 
