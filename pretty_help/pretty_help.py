@@ -7,8 +7,7 @@ import discord
 from discord.ext import commands
 from discord.ext.commands.help import HelpCommand
 
-from .emoji_menu import EmojiMenu
-
+from .app_menu import AppMenu
 
 # class NewHelp(commands.HelpCommand, commands.Cog):
 #     def _add_to_bot(self, bot: commands.Bot) -> None:
@@ -295,7 +294,7 @@ class PrettyHelp(HelpCommand):
         self.index_title = options.pop("index_title", "Categories")
         self.no_category = options.pop("no_category", "No Category")
         self.sort_commands = options.pop("sort_commands", True)
-        self.menu = options.pop("menu", EmojiMenu())
+        self.menu = options.pop("menu", AppMenu())
         self.paginator = Paginator(
             color=self.color, show_index=options.pop("show_index", True)
         )
