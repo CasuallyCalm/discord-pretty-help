@@ -2,7 +2,6 @@ __all__ = ["EmojiMenu"]
 
 import asyncio
 import re
-from abc import ABCMeta
 from typing import List
 
 import discord
