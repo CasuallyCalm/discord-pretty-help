@@ -20,7 +20,8 @@ black = "^22.6.0"
 python-dotenv = "^0.20.0"
 
 [tool.poetry.scripts]
-test = "tests.test_discord_pretty_help:run"
+emoji = "tests.test_emoji_menu:run"
+app = "tests.test_app_menu:run"
 
 [build-system]
 requires = ["poetry>=0.12"]
