@@ -30,7 +30,7 @@ bot = commands.Bot(
     help_command=help,
 )
 
-# bot.help_command = PrettyHelp(menu=menu, ending_note=ending_note, show_index=False) # alternate config
+# bot.help_command = PrettyHelp(ending_note=ending_note, show_index=False) # alternate config
 
 
 @bot.event
