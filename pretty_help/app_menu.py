@@ -1,4 +1,5 @@
-from turtle import color
+__all__ = ["AppMenu"]
+
 from typing import List, Optional
 
 import discord
