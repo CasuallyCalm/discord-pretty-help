@@ -14,6 +14,7 @@ dotenv.load_dotenv("./tests/.env")
 # for testing standard text based commands, ie !ping, make sure the message content intent ON in the discord bot app page
 intents = discord.Intents.default()
 intents.message_content = True
+menu = None
 
 MY_GUILD = discord.Object(id=os.environ.get("GUILD_ID"))
 
@@ -296,7 +297,7 @@ async def setup():
 
 
 bot.setup_hook = setup
-
+bot.
 
 def run():
     bot.run(os.environ.get("TOKEN"))
