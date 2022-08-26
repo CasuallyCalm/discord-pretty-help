@@ -7,7 +7,8 @@ import discord
 import dotenv
 from discord import app_commands
 from discord.ext import commands
-from pretty_help import EmojiMenu, PrettyHelp
+from pretty_help import EmojiMenu, PrettyHelp, AppNav, AppMenu
+
 
 dotenv.load_dotenv("./tests/.env")
 
@@ -22,12 +23,13 @@ MY_GUILD = discord.Object(id=os.environ.get("GUILD_ID"))
 # Custom ending note
 ending_note = "The ending note from {ctx.bot.user.name}\nFor command {help.clean_prefix}{help.invoked_with}"
 
+menu = AppMenu(ephemeral=True)
 
 bot = commands.Bot(
     command_prefix="!",
     description="this is the bots descripton",
     intents=intents,
-    help_command=PrettyHelp(ending_note=ending_note),
+    help_command=PrettyHelp(ending_note=ending_note, menu=menu),
 )
 
 
@@ -48,7 +50,7 @@ class TextCommandCog(commands.Cog):
     """This is a cog for testing purposes"""
 
     @commands.command(description="This is a command description")
-    async def testcommand(self, ctx: commands.Context):
+    async def testcommand(self, ctx: commands.Context, args: str = None):
         """This is command help"""
         await ctx.send("This is a test command")
 
@@ -290,6 +292,7 @@ async def setup():
     await bot.add_cog(LargeTextCommandCog())
     await bot.add_cog(AppCommandCog())
     await bot.add_cog(GroupAppCommandCog())
+    bot.add_view(AppNav())
     bot.tree.copy_global_to(guild=MY_GUILD)
     await bot.tree.sync(guild=MY_GUILD)
     print(f"Logged in as: {bot.user.name}")
@@ -297,7 +300,7 @@ async def setup():
 
 
 bot.setup_hook = setup
-bot.
+
 
 def run():
     bot.run(os.environ.get("TOKEN"))

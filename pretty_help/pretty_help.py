@@ -4,27 +4,11 @@ from random import randint
 from typing import List, Union
 
 import discord
+from discord import app_commands
 from discord.ext import commands
 from discord.ext.commands.help import HelpCommand
 
 from .app_menu import AppMenu
-
-# class NewHelp(commands.HelpCommand, commands.Cog):
-#     def _add_to_bot(self, bot: commands.Bot) -> None:
-#         super()._add_to_bot(bot)
-#         self.bot = bot
-#         bot.tree.add_command(self._app_command_callback)
-
-#     def _remove_from_bot(self, bot) -> None:
-#         super()._remove_from_bot(bot)
-#         bot.tree.remove_command(self._app_command_callback.name)
-
-#     @app_commands.command(name="help")
-#     async def _app_command_callback(self, interaction: discord.Interaction):
-#         await interaction.response.send_message("help command")
-
-#     async def command_callback(self, ctx, /, *, command=None) -> None:
-#         await ctx.send("this is a dumb help command")
 
 
 class Paginator:
@@ -247,7 +231,7 @@ class Paginator:
         return lst
 
 
-class PrettyHelp(HelpCommand):
+class PrettyHelp(HelpCommand, commands.Cog):
     """The implementation of the prettier help command.
     A more refined help command format
     This inherits from :class:`HelpCommand`.
@@ -303,9 +287,34 @@ class PrettyHelp(HelpCommand):
 
         super().__init__(**options)
 
+    def _add_to_bot(self, bot: commands.Bot) -> None:
+        super()._add_to_bot(bot)
+        self.bot = bot
+        bot.tree.add_command(self._app_command_callback)
+
+    def _remove_from_bot(self, bot) -> None:
+        super()._remove_from_bot(bot)
+        bot.tree.remove_command(self._app_command_callback.name)
+
+    # Hackey, but it works I guess.
+    # Might figure out a better solution later 🤷‍♂️
+    @app_commands.describe(
+        command="The command or chain of commands/subcommands to get help for"
+    )
+    @app_commands.command(name="help")
+    async def _app_command_callback(
+        self, interaction: discord.Interaction, command: str = None
+    ):
+        """Application help command"""
+        bot = interaction.client
+        ctx = await commands.Context.from_interaction(interaction)
+        ctx.bot = bot
+        await ctx.invoke(bot.get_command("help"), command=command)
+
     async def prepare_help_command(
         self, ctx: commands.Context, command: commands.Command
     ):
+        self.context = ctx
         if ctx.guild is not None:
             perms = ctx.channel.permissions_for(ctx.guild.me)
             if not perms.embed_links:
