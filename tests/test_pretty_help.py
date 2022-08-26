@@ -4,49 +4,43 @@ Note: Rename `env.example` to `.env` and enter your token then run `poetry run t
 import os
 
 import discord
+import dotenv
 from discord import app_commands
 from discord.ext import commands
 from pretty_help import EmojiMenu, PrettyHelp
-import dotenv
-
-from pretty_help.emoji_menu import EmojiMenu
 
 dotenv.load_dotenv("./tests/.env")
 
 # for testing standard text based commands, ie !ping, make sure the message content intent ON in the discord bot app page
 intents = discord.Intents.default()
 intents.message_content = True
+menu = None
 
 MY_GUILD = discord.Object(id=os.environ.get("GUILD_ID"))
 
-# ":discord:743511195197374563" is a custom discord emoji format. Adjust to match your own custom emoji.
-menu = EmojiMenu(
-    "\U0001F44D",
-    "👎",
-    ":discord:743511195197374563",
-    active_time=60,
-    delete_after_timeout=False,
-)
 
 # Custom ending note
 ending_note = "The ending note from {ctx.bot.user.name}\nFor command {help.clean_prefix}{help.invoked_with}"
 
-help = PrettyHelp(menu=menu, ending_note=ending_note)
 
 bot = commands.Bot(
     command_prefix="!",
     description="this is the bots descripton",
     intents=intents,
-    help_command=help,
+    help_command=PrettyHelp(ending_note=ending_note),
 )
 
-# bot.help_command = PrettyHelp(menu=menu, ending_note=ending_note, show_index=False) # alternate config
 
-
-@bot.event
-async def on_ready():
-    print(f"Logged in as: {bot.user.name}")
-    print(f"With ID: {bot.user.id}")
+def use_emoji_menu():
+    # ":discord:743511195197374563" is a custom discord emoji format. Adjust to match your own custom emoji.
+    menu = EmojiMenu(
+        "\U0001F44D",
+        "👎",
+        ":discord:743511195197374563",
+        active_time=60,
+        delete_after_timeout=False,
+    )
+    bot.help_command = PrettyHelp(menu=menu, ending_note=ending_note)
 
 
 ####### Text command Stuff
@@ -298,13 +292,20 @@ async def setup():
     await bot.add_cog(GroupAppCommandCog())
     bot.tree.copy_global_to(guild=MY_GUILD)
     await bot.tree.sync(guild=MY_GUILD)
+    print(f"Logged in as: {bot.user.name}")
+    print(f"With ID: {bot.user.id}")
 
 
 bot.setup_hook = setup
-
+bot.
 
 def run():
     bot.run(os.environ.get("TOKEN"))
+
+
+def run_emoji():
+    use_emoji_menu()
+    run()
 
 
 if __name__ == "__main__":
