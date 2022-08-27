@@ -44,7 +44,7 @@ class AppNav(View):
             for index, page in enumerate(pages):
                 self.select.add_option(
                     label=f"{page.title}",
-                    description=page.description,
+                    description=page.description.replace("`",""),
                     value=index,
                 )
 
