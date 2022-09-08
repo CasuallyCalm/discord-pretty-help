@@ -60,7 +60,7 @@ class Paginator:
             and len(embed.fields) < self.field_limit
         )
 
-    def _new_page(self, title: str, description: str):
+    def _new_page(self, title: str, description: str, image: str,thumbnail: str):
         """
         Create a new page
 
@@ -70,7 +70,18 @@ class Paginator:
         Returns:
             discord.Emebed: Returns an embed with the title and color set
         """
-        return discord.Embed(title=title, description=description, color=self.color)
+        e=discord.Embed(title=title, description=description, color=self.color)
+        if image != None:
+            try:
+                e.set_image(url=image)
+            except:
+                pass
+        if thumbnail != None:
+            try:
+                e.set_thumbnail(url=thumbnail)
+            except:
+                pass
+        return e
 
     def _add_page(self, page: discord.Embed):
         """
@@ -83,7 +94,7 @@ class Paginator:
         self._pages.append(page)
 
     def add_cog(
-        self, title: Union[str, commands.Cog], commands_list: List[commands.Command]
+        self, title: Union[str, commands.Cog], commands_list: List[commands.Command],image: str,thumbnail: str
     ):
         """
         Add a cog page to the help menu
@@ -97,12 +108,12 @@ class Paginator:
             return
 
         page_title = title.qualified_name if cog else title
-        embed = self._new_page(page_title, (title.description or "") if cog else "")
+        embed = self._new_page(page_title, (title.description or "") if cog else "",image,thumbnail)
 
-        self._add_command_fields(embed, page_title, commands_list)
+        self._add_command_fields(embed, page_title, commands_list,image,thumbnail)
 
     def _add_command_fields(
-        self, embed: discord.Embed, page_title: str, commands: List[commands.Command]
+        self, embed: discord.Embed, page_title: str, commands: List[commands.Command],image: str,thumbnail: str
     ):
         """
         Adds command fields to Category/Cog and Command Group pages
@@ -122,7 +133,7 @@ class Paginator:
                 self.suffix,
             ):
                 self._add_page(embed)
-                embed = self._new_page(page_title, embed.description)
+                embed = self._new_page(page_title, embed.description,image,thumbnail)
 
             embed.add_field(
                 name=command.name,
@@ -154,6 +165,7 @@ class Paginator:
         page = self._new_page(
             command.qualified_name,
             f"{self.prefix}{self.__command_info(command)}{self.suffix}" or "",
+            image
         )
         if command.aliases:
             aliases = ", ".join(command.aliases)
@@ -183,21 +195,22 @@ class Paginator:
             commands_list (List[commands.Command]): The list of commands in the group
         """
         page = self._new_page(
-            group.name, f"{self.prefix}{self.__command_info(group)}{self.suffix}" or ""
+            group.name, f"{self.prefix}{self.__command_info(group)}{self.suffix}" or "",image,thumbnail
         )
 
         self._add_command_fields(page, group.name, commands_list)
 
-    def add_index(self, title: str, bot: commands.Bot):
+    def add_index(self, title: str, bot: commands.Bot,image: str,thumbnail: str):
         """
         Add an index page to the response of the bot_help command
 
         Args:
+            include (bool): Include the index page or not
             title (str): The title of the index page
             bot (commands.Bot): The bot instance
         """
         if self.show_index:
-            index = self._new_page(title, bot.description or "")
+            index = self._new_page(title, bot.description or "",image,thumbnail)
 
             for page_no, page in enumerate(self._pages, 1):
                 index.add_field(
@@ -272,6 +285,8 @@ class PrettyHelp(HelpCommand):
         self.no_category = options.pop("no_category", "No Category")
         self.sort_commands = options.pop("sort_commands", True)
         self.menu = options.pop("menu", DefaultMenu())
+        self.image = options.pop("image", None)
+        self.thumbnail = options.pop("thumbnail", None)
         self.paginator = Paginator(
             color=self.color, show_index=options.pop("show_index", True)
         )
@@ -333,7 +348,7 @@ class PrettyHelp(HelpCommand):
                 sort=self.sort_commands,
             ):
                 mapping[cmd.cog].append(cmd)
-            self.paginator.add_cog(self.no_category, mapping.pop(None))
+            self.paginator.add_cog(self.no_category, mapping.pop(None),self.image,self.thumbnail)
             sorted_map = sorted(
                 mapping.items(),
                 key=lambda cg: cg[0].qualified_name
@@ -341,8 +356,8 @@ class PrettyHelp(HelpCommand):
                 else str(cg[0]),
             )
             for cog, command_list in sorted_map:
-                self.paginator.add_cog(cog, command_list)
-            self.paginator.add_index(self.index_title, bot)
+                self.paginator.add_cog(cog, command_list,self.image,self.thumbnail)
+            self.paginator.add_index(self.index_title, bot, self.image,self.thumbnail)
         await self.send_pages()
 
     async def send_command_help(self, command: commands.Command):
@@ -364,5 +379,5 @@ class PrettyHelp(HelpCommand):
             filtered = await self.filter_commands(
                 cog.get_commands(), sort=self.sort_commands
             )
-            self.paginator.add_cog(cog, filtered)
+            self.paginator.add_cog(cog, filtered,self.image,self.thumbnail)
         await self.send_pages()
