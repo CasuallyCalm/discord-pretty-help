@@ -23,13 +23,18 @@ MY_GUILD = discord.Object(id=os.environ.get("GUILD_ID"))
 # Custom ending note
 ending_note = "The ending note from {ctx.bot.user.name}\nFor command {help.clean_prefix}{help.invoked_with}"
 
-menu = AppMenu(ephemeral=True)
+menu = AppMenu(ephemeral=True)  # responses to help commands will be ephemeral
 
 bot = commands.Bot(
     command_prefix="!",
     description="this is the bots descripton",
     intents=intents,
-    help_command=PrettyHelp(ending_note=ending_note, menu=menu),
+    help_command=PrettyHelp(
+        ending_note=ending_note,
+        menu=menu,
+        image_url="https://assets-global.website-files.com/6257adef93867e50d84d30e2/62f0a9e560a799075a4e0cea_Discord-Logo-White%20(3).png",  # white discord icon
+        thumbnail_url="https://assets-global.website-files.com/6257adef93867e50d84d30e2/625e5fcef7ab80b8c1fe559e_Discord-Logo-Color.png",  # blurple discord icon
+    ),
 )
 
 

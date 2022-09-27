@@ -26,12 +26,14 @@ class Paginator:
         The color of the disord embed. Default is a random color for every invoke
     ending_note: Optional[:class:`str`]
         The footer in of the help embed
+    image_url: Optional[:class:`str`]
+        The url of the image to be used on the embed
+    thumbnail_url: Optional[:class:`str`]
+        The url of the thumbnail to be used on the emebed
     """
 
     def __init__(
-        self,
-        show_index,
-        color=0,
+        self, show_index, color=0, image_url: str = None, thumbnail_url: str = None
     ):
         self.ending_note = None
         self.color = color
@@ -40,6 +42,8 @@ class Paginator:
         self.prefix = "```"
         self.suffix = "```"
         self.show_index = show_index
+        self.image_url = image_url
+        self.thumbnail_url = thumbnail_url
         self.clear()
 
     def clear(self):
@@ -71,7 +75,10 @@ class Paginator:
         Returns:
             discord.Emebed: Returns an embed with the title and color set
         """
-        return discord.Embed(title=title, description=description, color=self.color)
+        embed = discord.Embed(title=title, description=description, color=self.color)
+        embed.set_image(url=self.image_url)
+        embed.set_thumbnail(url=self.thumbnail_url)
+        return embed
 
     def _add_page(self, page: discord.Embed):
         """
@@ -130,10 +137,11 @@ class Paginator:
                 embed = self._new_page(page_title, embed.description)
 
             embed.add_field(
-                name=command.name if not group else f"🔗 {command.name}",
+                name=f"🔗 {command.name}" if group else command.name,
                 value=f'{self.prefix}{command.short_doc or "No Description"}{self.suffix}',
                 inline=False,
             )
+
         self._add_page(embed)
 
     @staticmethod
@@ -167,8 +175,7 @@ class Paginator:
                 value=f"{self.prefix}{aliases}{self.suffix}",
                 inline=False,
             )
-        cooldown: commands.Cooldown = command._buckets._cooldown
-        if cooldown:
+        if cooldown := command._buckets._cooldown:
             page.add_field(
                 name="Cooldown",
                 value=f"`{cooldown.rate} time(s) every {cooldown.per} second(s)`",
@@ -221,8 +228,8 @@ class Paginator:
         if len(self._pages) == 1:
             return self._pages
         lst = []
-        start = 1 if not self.show_index else 0
-        pages = len(self._pages) if not self.show_index else len(self._pages) - 1
+        start = 0 if self.show_index else 1
+        pages = len(self._pages) - 1 if self.show_index else len(self._pages)
         for page_no, page in enumerate(self._pages, start):
             page: discord.Embed
             if not self.show_index or page_no != 0:
@@ -266,21 +273,29 @@ class PrettyHelp(HelpCommand, commands.Cog):
     show_index: class: `bool`
         A bool that indicates if the index page should be shown listing the available cogs
         Defaults to ``True``.
+    image_url: Optional[:class:`str`]
+        The url of the image to be used on the embed
+    thumbnail_url: Optional[:class:`str`]
+        The url of the thumbnail to be used on the emebed
     """
 
     def __init__(self, **options):
 
-        self.color = options.pop(
-            "color",
-            discord.Color.from_rgb(randint(0, 255), randint(0, 255), randint(0, 255)),
-        )
         self.dm_help = options.pop("dm_help", False)
         self.index_title = options.pop("index_title", "Categories")
         self.no_category = options.pop("no_category", "No Category")
         self.sort_commands = options.pop("sort_commands", True)
         self.menu = options.pop("menu", AppMenu())
         self.paginator = Paginator(
-            color=self.color, show_index=options.pop("show_index", True)
+            show_index=options.pop("show_index", True),
+            color=options.pop(
+                "color",
+                discord.Color.from_rgb(
+                    randint(0, 255), randint(0, 255), randint(0, 255)
+                ),
+            ),
+            image_url=options.pop("image_url"),
+            thumbnail_url=options.pop("thumbnail_url"),
         )
         self.case_insensitive = options.pop("case_insensitive", False)
         self.ending_note = options.pop("ending_note", "")
@@ -349,10 +364,7 @@ class PrettyHelp(HelpCommand, commands.Cog):
 
     def get_destination(self):
         ctx = self.context
-        if self.dm_help is True:
-            return ctx.author
-        else:
-            return ctx.channel
+        return ctx.author if self.dm_help is True else ctx.channel
 
     async def send_bot_help(self, mapping: dict):
         bot = self.context.bot
