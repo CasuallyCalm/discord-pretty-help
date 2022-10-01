@@ -93,6 +93,9 @@ class EmojiMenu(PrettyMenu):
         pages: List[discord.Embed],
     ):
         total = len(pages)
+        if ctx.interaction:
+            await ctx.interaction.response.send_message("_")
+            await ctx.interaction.delete_original_response()
         message: discord.Message = await destination.send(embed=pages[0])
 
         if total > 1:

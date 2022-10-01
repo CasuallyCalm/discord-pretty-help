@@ -1,4 +1,4 @@
-__all__ = ["PrettyHelp"]
+__all__ = ["PrettyHelp", "Paginator"]
 
 from random import randint
 from typing import List, Union
@@ -32,10 +32,12 @@ class Paginator:
         The url of the thumbnail to be used on the emebed
     """
 
+    ending_note: str
+
     def __init__(
         self, show_index, color=0, image_url: str = None, thumbnail_url: str = None
     ):
-        self.ending_note = None
+        # self.ending_note = None
         self.color = color
         self.char_limit = 6000
         self.field_limit = 25
@@ -294,8 +296,8 @@ class PrettyHelp(HelpCommand, commands.Cog):
                     randint(0, 255), randint(0, 255), randint(0, 255)
                 ),
             ),
-            image_url=options.pop("image_url"),
-            thumbnail_url=options.pop("thumbnail_url"),
+            image_url=options.pop("image_url", None),
+            thumbnail_url=options.pop("thumbnail_url", None),
         )
         self.case_insensitive = options.pop("case_insensitive", False)
         self.ending_note = options.pop("ending_note", "")
@@ -414,3 +416,12 @@ class PrettyHelp(HelpCommand, commands.Cog):
             )
             self.paginator.add_cog(cog, filtered)
         await self.send_pages()
+
+    async def send_error_message(self, error: str, /) -> None:
+        """Check if the conext is from an app command or text command and send an error message"""
+        if self.context.interaction:
+            return await self.context.interaction.response.send_message(
+                error, ephemeral=True
+            )
+
+        return await super().send_error_message(error)
