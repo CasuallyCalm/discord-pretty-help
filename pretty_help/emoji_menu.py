@@ -93,9 +93,13 @@ class EmojiMenu(PrettyMenu):
         pages: List[discord.Embed],
     ):
         total = len(pages)
+
+        # this is a quick way to make the emoji menu appear to work correctly when called as an app command
+        # otherwise the interaction will error
         if ctx.interaction:
-            await ctx.interaction.response.send_message("_")
+            await ctx.interaction.response.defer()
             await ctx.interaction.delete_original_response()
+
         message: discord.Message = await destination.send(embed=pages[0])
 
         if total > 1:
