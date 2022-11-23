@@ -1,7 +1,7 @@
 __all__ = ["PrettyHelp", "Paginator"]
 
 from random import randint
-from typing import List, Union
+from typing import List, Union, Optional
 
 import discord
 from discord import app_commands
@@ -115,7 +115,7 @@ class Paginator:
         self,
         embed: discord.Embed,
         page_title: str,
-        commands: List[commands.Command],
+        command_list: List[Union[commands.Command, app_commands.commands.Command]],
         group: bool = False,
     ):
         """
@@ -124,14 +124,21 @@ class Paginator:
         Args:
             embed (discord.Embed): The page to add command descriptions
             page_title (str): The title of the page
-            commands (List[commands.Command]): The list of commands for the fields
+            commands_list(List[Union[commands.Command, app_commands.commands.Command]]): The list of commands for the fields
         """
-        for command in commands:
+
+        for command in command_list:
+
+            if isinstance(command, commands.Command):
+                short_doc = command.short_doc
+            else:
+                short_doc = command.description.split("\n", 1)[0]
+
             if not self._check_embed(
                 embed,
                 self.ending_note,
                 command.name,
-                command.short_doc,
+                short_doc,
                 self.prefix,
                 self.suffix,
             ):
@@ -140,7 +147,7 @@ class Paginator:
 
             embed.add_field(
                 name=f"🔗 {command.name}" if group else command.name,
-                value=f'{self.prefix}{command.short_doc or "No Description"}{self.suffix}',
+                value=f'{self.prefix}{short_doc or "No Description"}{self.suffix}',
                 inline=False,
             )
 
@@ -157,6 +164,64 @@ class Paginator:
             info = "None"
         return info
 
+    def add_app_command(self, command: app_commands.commands.Command, signature: str):
+        """
+        Add an application command to the help page
+
+        Args:
+            command (app_commands.commands.Command): The application command to add
+        """
+        page = self._new_page(
+            command.name, f"{self.prefix}{command.description}{self.suffix}"
+        )
+        page.add_field(
+            name="Usage",
+            value=f"{self.prefix}{signature}{self.suffix}",
+            inline=False,
+        )
+
+        for parameter in sorted(
+            command.parameters, key=lambda x: (not x.required, x.name)
+        ):
+            if parameter.description:
+                page.add_field(
+                    name=parameter.name,
+                    value=f"```Required: {parameter.required}\n{parameter.description}```",
+                    inline=False,
+                )
+
+        self._add_page(page)
+
+    def add_group_app_command(
+        self, command: app_commands.commands.Group, signature: str
+    ):
+        """
+        Add an application command to the help page
+
+        Args:
+            command (app_commands.commands.Group): The application group command to add
+        """
+        page = self._new_page(
+            command.qualified_name, f"{self.prefix}{command.description}{self.suffix}"
+        )
+        # page.add_field(
+        #     name="Usage",
+        #     value=f"{self.prefix}{signature}{self.suffix}",
+        #     inline=False,
+        # )
+
+        # for parameter in sorted(
+        #     command.parameters, key=lambda x: (not x.required, x.name)
+        # ):
+        #     if parameter.description:
+        #         page.add_field(
+        #             name=parameter.name,
+        #             value=f"```Required: {parameter.required}\n{parameter.description}```",
+        #             inline=False,
+        #         )
+
+        self._add_page(page)
+
     def add_command(self, command: commands.Command, signature: str):
         """
         Add a command help page
@@ -165,7 +230,7 @@ class Paginator:
             command (commands.Command): The command to get help for
             signature (str): The command signature/usage string
         """
-        desc = f"{command.description}\n\n" if command.description else ""
+        # desc = f"{command.description}\n\n" if command.description else ""
         page = self._new_page(
             command.qualified_name,
             f"{self.prefix}{self.__command_info(command)}{self.suffix}" or "",
@@ -328,6 +393,14 @@ class PrettyHelp(HelpCommand, commands.Cog):
         ctx.bot = bot
         await ctx.invoke(bot.get_command("help"), command=command)
 
+    async def filter_app_commands(
+        self, app_commands: List[app_commands.AppCommand], sort: bool = True
+    ):
+        """Filter Application Commands and optionally sort them"""
+        if sort:
+            app_commands.sort(key=lambda x: x.name)
+        return app_commands
+
     async def prepare_help_command(
         self, ctx: commands.Context, command: commands.Command
     ):
@@ -344,6 +417,21 @@ class PrettyHelp(HelpCommand, commands.Cog):
         self.paginator.clear()
         self.paginator.ending_note = self.get_ending_note()
         await super().prepare_help_command(ctx, command)
+
+    async def command_callback(
+        self, ctx: commands.Context, /, *, command: Optional[str] = None
+    ) -> None:
+        await self.prepare_help_command(ctx, command)
+        if command is not None:
+            keys = command.split(" ")
+            bot: commands.Bot = ctx.bot
+            if cmd := bot.tree.get_command(keys[0]):
+                if isinstance(cmd, app_commands.commands.Group):
+                    await self.send_group_app_command_help(cmd)
+                else:
+                    await self.send_app_command_help(cmd)
+                return
+        await super().command_callback(ctx, command=command)
 
     def get_ending_note(self):
         """Returns help command's ending note. This is mainly useful to override for i18n purposes."""
@@ -395,6 +483,59 @@ class PrettyHelp(HelpCommand, commands.Cog):
             self.paginator.add_index(self.index_title, bot)
         await self.send_pages()
 
+    def get_app_command_signature(self, command: app_commands.commands.Command):
+        """
+        Returns the application command signature
+
+        Args:
+            command (app_commands.commands.Command): The Application command to get a signature for
+        """
+        required = ""
+        not_required = ""
+        if command.parameters:
+            required = " ".join(
+                f"<{parameter.name}>"
+                for parameter in command.parameters
+                if parameter.required
+            )
+            not_required = " ".join(
+                f"[{parameter.name}]"
+                for parameter in command.parameters
+                if not parameter.required
+            )
+
+        return f"{self.context.clean_prefix}{command.qualified_name} {required} {not_required}"
+
+    def get_group_app_command_signature(self, command: app_commands.commands.Group):
+        """
+        Returns the application command group signature
+
+        Args:
+            command (app_commands.commands.Group): The Application group command to get a signature for
+        """
+        # required = " ".join(
+        #     f"<{parameter.name}>"
+        #     for parameter in command.parameters
+        #     if parameter.required
+        # )
+        # not_required = " ".join(
+        #     f"[{parameter.name}]"
+        #     for parameter in command.parameters
+        #     if not parameter.required
+        # )
+
+        return f"{self.context.clean_prefix}{command.qualified_name}"
+
+    async def send_app_command_help(self, command: app_commands.commands.Command):
+        self.paginator.add_app_command(command, self.get_app_command_signature(command))
+        await self.send_pages()
+
+    async def send_group_app_command_help(self, command: app_commands.commands.Group):
+        self.paginator.add_group_app_command(
+            command, self.get_group_app_command_signature(command)
+        )
+        await self.send_pages()
+
     async def send_command_help(self, command: commands.Command):
         filtered = await self.filter_commands([command])
         if filtered:
@@ -414,6 +555,7 @@ class PrettyHelp(HelpCommand, commands.Cog):
             filtered = await self.filter_commands(
                 cog.get_commands(), sort=self.sort_commands
             )
+            filtered += await self.filter_app_commands(cog.get_app_commands())
             self.paginator.add_cog(cog, filtered)
         await self.send_pages()
 
