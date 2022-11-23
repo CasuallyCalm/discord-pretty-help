@@ -55,7 +55,7 @@ class TextCommandCog(commands.Cog):
     """This is a cog for testing purposes"""
 
     @commands.command(description="This is a command description")
-    async def testcommand(self, ctx: commands.Context, args: str = None):
+    async def testcommand(self, ctx: commands.Context, arg: str, args: str = None):
         """This is command help"""
         await ctx.send("This is a test command")
 
@@ -214,9 +214,11 @@ class AppCommandCog(commands.Cog):
         await ctx.send("normal message command with app commands")
 
     @app_commands.command()
-    async def _app_command(self, interaction: discord.Interaction):
-        """This is an app command description"""
-        await interaction.response.send_message("This is an app command")
+    async def _app_command(
+        self, interaction: discord.Interaction, arg: str, args: str = None
+    ):
+        """This is an app command description in a cog"""
+        await interaction.response.send_message("This is an app command in a cog")
 
     @app_commands.command(nsfw=True)
     async def nsfw_app_command(self, interaction: discord.Interaction):
@@ -233,17 +235,19 @@ class GroupAppCommandCog(commands.GroupCog):
     """A group of app commands in a cog"""
 
     @app_commands.command()
-    async def _app_command(self, interaction: discord.Interaction):
-        """This is an app command description"""
-        await interaction.response.send_message("This is an app command")
+    async def _app_command(
+        self, interaction: discord.Interaction, arg: str, args: str = None
+    ):
+        """This is an app command description in a group cog"""
+        await interaction.response.send_message("This is an app command in a group")
 
     @app_commands.command(nsfw=True)
     async def nsfw_app_command(self, interaction: discord.Interaction):
         """This is an app command description and is NSFW"""
         await interaction.response.send_message("This is an app command, also NSFW")
 
+    # @app_commands.describe(message="The message the will be repeated")
     @app_commands.command()
-    @app_commands.describe(message="The message the will be repeated")
     async def repeat(self, interaction: discord.Interaction, message: str):
         await interaction.response.send_message(message)
 
