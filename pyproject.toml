@@ -15,9 +15,9 @@ packages = [
 python = "^3.8"
 
 [tool.poetry.dev-dependencies]
-"discord.py" = "^2.0.0"
-black = "^22.6.0"
-python-dotenv = "^0.20.0"
+"discord.py" = "^2"
+black = "^22"
+python-dotenv = "*"
 
 [tool.poetry.scripts]
 run = "tests.test_pretty_help:run"
