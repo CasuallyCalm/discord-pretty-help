@@ -357,7 +357,7 @@ class PrettyHelp(HelpCommand, commands.Cog):
         )
         self.case_insensitive = options.pop("case_insensitive", False)
         self.ending_note = options.pop("ending_note", "")
-        self.delete_invoke = options.pop("delete_invoke", True)
+        self.delete_invoke = options.pop("delete_invoke", False)
 
         super().__init__(**options)
 
