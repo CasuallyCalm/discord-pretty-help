@@ -255,6 +255,16 @@ class GroupAppCommandCog(commands.GroupCog):
 ######## Context Menus
 
 
+@bot.tree.command()
+async def sa_app_command(interaction: discord.Interaction):
+    await interaction.response.send_message("Stand alone app command")
+
+
+@bot.hybrid_command(with_app_command=True)
+async def hybrid_command(ctx: commands.Context):
+    await ctx.send("Hybrid command")
+
+
 @bot.tree.context_menu(nsfw=True)
 async def nsfw_reply(interaction: discord.Interaction, message: discord.Message):
     await message.reply(f"That's a nice message! - {interaction.user.mention}")
