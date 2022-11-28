@@ -447,11 +447,11 @@ class PrettyHelp(HelpCommand, commands.Cog):
     async def send_pages(self):
         pages = self.paginator.pages
         destination = self.get_destination()
-        if self.delete_invoke:
-            with contextlib.suppress(
-                discord.errors.Forbidden, commands.errors.CommandInvokeError
-            ):
+        if self.delete_invoke and self.context.interaction is None:
+            try:
                 await self.context.message.delete()
+            except (discord.errors.Forbidden, commands.errors.CommandInvokeError):
+                print("Missing permissins to delete invoked message")
         if not pages:
             await destination.send(f"```{self.get_ending_note()}```")
         else:
@@ -464,6 +464,14 @@ class PrettyHelp(HelpCommand, commands.Cog):
     async def send_bot_help(self, mapping: dict):
         bot = self.context.bot
         channel = self.get_destination()
+        app_mapping = list(
+            filter(
+                lambda cmd: isinstance(cmd, app_commands.commands.Command)
+                and not isinstance(cmd, commands.hybrid.HybridAppCommand)
+                and cmd.name != "help",
+                bot.tree.get_commands(),
+            )
+        )
         async with channel.typing():
             mapping = {name: [] for name in mapping}
             help_filtered = (
@@ -471,11 +479,18 @@ class PrettyHelp(HelpCommand, commands.Cog):
                 if len(bot.commands) > 1
                 else bot.commands
             )
-            for cmd in await self.filter_commands(
-                help_filtered,
-                sort=self.sort_commands,
+            for cmd in (
+                await self.filter_commands(
+                    help_filtered,
+                    sort=self.sort_commands,
+                )
+                + app_mapping
             ):
-                mapping[cmd.cog].append(cmd)
+                if hasattr(cmd, "binding"):
+                    mapping[cmd.binding].append(cmd)
+                else:
+                    mapping[cmd.cog].append(cmd)
+
             self.paginator.add_cog(self.no_category, mapping.pop(None))
             sorted_map = sorted(
                 mapping.items(),
