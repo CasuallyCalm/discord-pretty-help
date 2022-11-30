@@ -1,3 +1,5 @@
+import contextlib
+
 __all__ = ["EmojiMenu"]
 
 import asyncio
@@ -143,12 +145,10 @@ class EmojiMenu(PrettyMenu):
 
                             await message.edit(embed=embed)
 
-                    try:
+                    with contextlib.suppress(discord.errors.Forbidden):
                         await message.remove_reaction(
                             payload.emoji, discord.Object(id=payload.user_id)
                         )
-                    except discord.errors.Forbidden:
-                        pass
 
                 except asyncio.TimeoutError:
                     navigating = False
@@ -156,7 +156,5 @@ class EmojiMenu(PrettyMenu):
                         await message.delete()
                     else:
                         for emoji in self:
-                            try:
+                            with contextlib.suppress(Exception):
                                 await message.remove_reaction(emoji, bot.user)
-                            except Exception:
-                                pass
