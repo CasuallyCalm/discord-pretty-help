@@ -1,9 +1,7 @@
-import contextlib
-
 __all__ = ["PrettyHelp", "Paginator"]
 
 from random import randint
-from typing import List, Union, Optional
+from typing import List, Optional, Union
 
 import discord
 from discord import app_commands
@@ -208,8 +206,6 @@ class Paginator:
         )
         self._add_command_fields(page, group.name, group.walk_commands(), group=True)
 
-        # self._add_page(page)
-
     def add_command(self, command: commands.Command, signature: str):
         """
         Add a command help page
@@ -218,7 +214,6 @@ class Paginator:
             command (commands.Command): The command to get help for
             signature (str): The command signature/usage string
         """
-        # desc = f"{command.description}\n\n" if command.description else ""
         page = self._new_page(
             command.qualified_name,
             f"{self.prefix}{self.__command_info(command)}{self.suffix}" or "",
@@ -424,6 +419,7 @@ class PrettyHelp(HelpCommand, commands.Cog):
                         pass
                     else:
                         cmd = found
+                # replace the default description with "No Description"
                 if cmd.description == "…":
                     cmd.description = "No Description"
                 if isinstance(cmd, app_commands.commands.Group):
@@ -445,6 +441,9 @@ class PrettyHelp(HelpCommand, commands.Cog):
         )
 
     async def send_pages(self):
+        """
+        Send the pageas that have been created
+        """
         pages = self.paginator.pages
         destination = self.get_destination()
         if self.delete_invoke and self.context.interaction is None:
@@ -462,6 +461,10 @@ class PrettyHelp(HelpCommand, commands.Cog):
         return ctx.author if self.dm_help is True else ctx.channel
 
     async def send_bot_help(self, mapping: dict):
+        """
+        Creates and sends the help command if there are no other arguments included
+        Called internally
+        """
         bot = self.context.bot
         channel = self.get_destination()
         app_mapping = list(
@@ -540,7 +543,6 @@ class PrettyHelp(HelpCommand, commands.Cog):
         await self.send_pages()
 
     async def send_app_group_help(self, group: app_commands.commands.Group):
-        """Send the help pages for a command group"""
         self.paginator.add_app_group(group, self.get_app_group_signature(group))
         await self.send_pages()
 
