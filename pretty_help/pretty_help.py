@@ -1,7 +1,7 @@
 __all__ = ["PrettyHelp", "Paginator"]
 
 from random import randint
-from typing import List, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 import discord
 from discord import app_commands
@@ -419,9 +419,6 @@ class PrettyHelp(HelpCommand, commands.Cog):
                         pass
                     else:
                         cmd = found
-                # replace the default description with "No Description"
-                if cmd.description == "…":
-                    cmd.description = "No Description"
                 if isinstance(cmd, app_commands.commands.Group):
                     await self.send_app_group_help(cmd)
                 else:
@@ -502,6 +499,9 @@ class PrettyHelp(HelpCommand, commands.Cog):
                 else str(cg[0]),
             )
             for cog, command_list in sorted_map:
+                # if a cog has the app_command attribute, it's an AppGroup Cog
+                if cog.app_command:
+                    command_list += cog.app_command.commands
                 self.paginator.add_cog(cog, command_list)
             self.paginator.add_index(self.index_title, bot)
         await self.send_pages()
@@ -566,6 +566,8 @@ class PrettyHelp(HelpCommand, commands.Cog):
                 cog.get_commands(), sort=self.sort_commands
             )
             filtered += await self.filter_app_commands(cog.get_app_commands())
+            if cog.app_command:
+                filtered += await self.filter_app_commands(cog.app_command.commands)
             self.paginator.add_cog(cog, filtered)
         await self.send_pages()
 
