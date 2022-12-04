@@ -48,10 +48,14 @@ bot = commands.Bot(command_prefix="!", help_command=PrettyHelp())
 - `page_right` - The emoji to use to page right
 - `remove` - The emoji to use to remove the help message
 
+![example](/images/example-emoji.gif)
+
 ### pretty_help.AppMenu
 - Uses Application Interactions (buttons) for navigating
 - `timeout` - The duration the interaction will be active for. Defaults to `None`.
 - `ephemeral` - Send as an ephemeral message. Defaults to `False`.
+
+![example](/images/example-app.gif)
 
 By default, the help will just pick a random color on every invoke. You can change this using the `color` argument:
 
