@@ -1,13 +1,14 @@
 __all__ = ["PrettyHelp", "Paginator"]
 
 from random import randint
-from typing import Any, Dict, List, Optional, Union
+from typing import List, Optional, Union
 
 import discord
 from discord import app_commands
 from discord.ext import commands
 from discord.ext.commands.help import HelpCommand
 
+from .abc_menu import PrettyMenu
 from .app_menu import AppMenu
 
 
@@ -35,16 +36,20 @@ class Paginator:
     ending_note: str
 
     def __init__(
-        self, show_index, color=0, image_url: str = None, thumbnail_url: str = None
+        self,
+        show_index: bool,
+        color: discord.Color = 0,
+        image_url: str = None,
+        thumbnail_url: str = None,
     ):
-        # self.ending_note = None
-        self.color = color
         self.char_limit = 6000
+        self.color = color
+        self.ending_note = ""
         self.field_limit = 25
-        self.prefix = "```"
-        self.suffix = "```"
-        self.show_index = show_index
         self.image_url = image_url
+        self.prefix = "```"
+        self.show_index = show_index
+        self.suffix = "```"
         self.thumbnail_url = thumbnail_url
         self.clear()
 
@@ -128,7 +133,6 @@ class Paginator:
         """
 
         for command in command_list:
-
             if isinstance(command, commands.Command):
                 short_doc = command.short_doc
             else:
@@ -332,27 +336,39 @@ class PrettyHelp(HelpCommand, commands.Cog):
         The url of the thumbnail to be used on the embed
     """
 
-    def __init__(self, **options):
-
-        self.dm_help = options.pop("dm_help", False)
-        self.index_title = options.pop("index_title", "Categories")
-        self.no_category = options.pop("no_category", "No Category")
-        self.sort_commands = options.pop("sort_commands", True)
-        self.menu = options.pop("menu", AppMenu())
-        self.paginator = Paginator(
-            show_index=options.pop("show_index", True),
-            color=options.pop(
-                "color",
-                discord.Color.from_rgb(
-                    randint(0, 255), randint(0, 255), randint(0, 255)
-                ),
-            ),
-            image_url=options.pop("image_url", None),
-            thumbnail_url=options.pop("thumbnail_url", None),
+    def __init__(
+        self,
+        case_insensitive: Optional[bool] = False,
+        color: Optional[discord.Color] = discord.Color.from_rgb(
+            randint(0, 255), randint(0, 255), randint(0, 255)
+        ),
+        delete_invoke: Optional[bool] = False,
+        dm_help: Optional[bool] = False,
+        ending_note: Optional[str] = "",
+        image_url: Optional[str] = None,
+        index_title: Optional[str] = "Categories",
+        menu: Optional[PrettyMenu] = AppMenu(),
+        no_category: Optional[str] = "No Category",
+        paginator: Optional[Paginator] = None,
+        show_index: Optional[bool] = True,
+        sort_commands: Optional[bool] = True,
+        thumbnail_url: Optional[str] = None,
+        **options,
+    ):
+        self.dm_help = dm_help
+        self.index_title = index_title
+        self.no_category = no_category
+        self.sort_commands = sort_commands
+        self.menu = menu
+        self.paginator = paginator or Paginator(
+            show_index=show_index,
+            color=color,
+            image_url=image_url,
+            thumbnail_url=thumbnail_url,
         )
-        self.case_insensitive = options.pop("case_insensitive", False)
-        self.ending_note = options.pop("ending_note", "")
-        self.delete_invoke = options.pop("delete_invoke", False)
+        self.case_insensitive = case_insensitive
+        self.ending_note = ending_note
+        self.delete_invoke = delete_invoke
 
         super().__init__(**options)
 
