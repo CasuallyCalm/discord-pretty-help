@@ -53,7 +53,7 @@ class AppNav(View):
         row=1,
         custom_id="pretty_help:previous",
     )
-    async def previous(self, interaction: discord.Interaction):
+    async def previous(self, interaction: discord.Interaction, button:discord.Button):
         self.index -= 1
         await self.update(interaction)
 
@@ -63,7 +63,7 @@ class AppNav(View):
         row=1,
         custom_id="pretty_help:next",
     )
-    async def next(self, interaction: discord.Interaction):
+    async def next(self, interaction: discord.Interaction, button:discord.Button):
         self.index += 1
         await self.update(interaction)
 
@@ -73,7 +73,7 @@ class AppNav(View):
         row=1,
         custom_id="pretty_help:delete",
     )
-    async def _delete(self, interaction: discord.Interaction):
+    async def _delete(self, interaction: discord.Interaction, button:discord.Button):
         await interaction.message.delete()
 
     @discord.ui.select(row=2, custom_id="pretty_help:select")
