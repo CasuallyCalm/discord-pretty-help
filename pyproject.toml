@@ -20,7 +20,7 @@ black = "^22"
 python-dotenv = "*"
 
 [tool.poetry.scripts]
-run = "tests.test_pretty_help:run"
+test = "tests.test_pretty_help:run"
 emoji = "tests.test_pretty_help:run_emoji"
 
 [build-system]
