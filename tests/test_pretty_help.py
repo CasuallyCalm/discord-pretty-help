@@ -26,8 +26,8 @@ ending_note = "The ending note from {ctx.bot.user.name}\nFor command {help.clean
 menu = AppMenu(ephemeral=True)
 
 bot = commands.Bot(
-    command_prefix="!",
-    description="this is the bots descripton",
+    command_prefix="~",
+    description="this is the bots description, ornare massa eget egestas purus viverra accumsan in nisl nisi scelerisque eu ultrices vitae auctor",
     intents=intents,
     help_command=PrettyHelp(
         ending_note=ending_note,
@@ -54,7 +54,7 @@ def use_emoji_menu():
 class TextCommandCog(commands.Cog):
     """This is a cog for testing purposes"""
 
-    @commands.command(description="This is a command description")
+    @commands.command(description="This is acommand description")
     async def testcommand(self, ctx: commands.Context, arg: str, args: str = None):
         """This is command help"""
         await ctx.send("This is a test command")
@@ -206,7 +206,7 @@ class LargeTextCommandCog(commands.Cog):
 
 ####### App Command stuff
 class AppCommandCog(commands.Cog):
-    """And Cog with app commands and a message command"""
+    """And Cog with app commands and a message command. ornare massa eget egestas purus viverra accumsan in nisl nisi scelerisque eu ultrices vitae auctor"""
 
     @commands.command()
     async def text_command(self, ctx: commands.Context):
