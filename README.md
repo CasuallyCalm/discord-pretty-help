@@ -34,8 +34,10 @@ bot = commands.Bot(command_prefix="!", help_command=PrettyHelp())
 - `index_title` - Set the index page name default is *"Categories"*
 - `menu` - The menu to use for navigating pages. Uses a `pretty_help.PrettyMenu()` instance. Default is `pretty_help.AppMenu()`
 - `no_category` - Set the name of the page with commands not part of a category. Default is "*No Category*"
-- `sort_commands` - Sort commands and categories alphabetically
+- `paginator`- The paginator to use. One is created by default.
+- `send_typing` - A bool that indicates if the bot will send a typing indicator. Defaults to ``True``
 - `show_index` - Show the index page or not
+- `sort_commands` - Sort commands and categories alphabetically
 - `thumbnail_url` - The url of the thumbnail to be used on the embed
 
 ## Menus

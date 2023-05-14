@@ -133,6 +133,9 @@ class Paginator:
         """
 
         for command in command_list:
+            command_name = command.name
+            if group or isinstance(command, commands.Group):
+                command_name = "🔗 " + command_name
             if isinstance(command, commands.Command):
                 short_doc = command.short_doc
             else:
@@ -140,7 +143,7 @@ class Paginator:
             if not self._check_embed(
                 embed,
                 self.ending_note,
-                command.name,
+                command_name,
                 short_doc,
                 self.prefix,
                 self.suffix,
@@ -149,7 +152,7 @@ class Paginator:
                 embed = self._new_page(page_title, embed.description)
 
             embed.add_field(
-                name=f"🔗 {command.name}" if group else command.name,
+                name=command_name, 
                 value=f'{self.prefix}{short_doc or "No Description"}{self.suffix}',
                 inline=False,
             )
@@ -315,23 +318,27 @@ class PrettyHelp(HelpCommand, commands.Cog):
         output is DM'd. If ``None``, then the bot will only DM when the help
         message becomes too long (dictated by more than :attr:`dm_help_threshold` characters).
         Defaults to ``False``.
+    ending_note: Optional[:class:`str`]
+        The footer in of the help embed
+    image_url: Optional[:class:`str`]
+        The url of the image to be used on the embed
+    index_title: :class: `str`
+        The string used when the index page is shown. Defaults to ``"Categories"``
     menu: Optional[:class:`pretty_help.PrettyMenu`]
         The menu to use for navigating pages. Default is :class:`pretty_help.DefaultMenu`
         Custom menus should inherit from :class:`pretty_help.PrettyMenu`
-    ending_note: Optional[:class:`str`]
-        The footer in of the help embed
-    index_title: :class: `str`
-        The string used when the index page is shown. Defaults to ``"Categories"``
     no_category: :class:`str`
         The string used when there is a command which does not belong to any category(cog).
         Useful for i18n. Defaults to ``"No Category"``
-    sort_commands: :class:`bool`
-        Whether to sort the commands in the output alphabetically. Defaults to ``True``.
+    paginator: :class: `pretty_help.Paginator`
+        The paginator to use. One is created by default.
+    send_typing: :class: `bool`
+        A bool that indicates if the bot will send a typing indicator. Defaults to ``True``
     show_index: class: `bool`
         A bool that indicates if the index page should be shown listing the available cogs
         Defaults to ``True``.
-    image_url: Optional[:class:`str`]
-        The url of the image to be used on the embed
+    sort_commands: :class:`bool`
+        Whether to sort the commands in the output alphabetically. Defaults to ``True``.
     thumbnail_url: Optional[:class:`str`]
         The url of the thumbnail to be used on the embed
     """
@@ -350,10 +357,12 @@ class PrettyHelp(HelpCommand, commands.Cog):
         menu: Optional[PrettyMenu] = AppMenu(),
         no_category: Optional[str] = "No Category",
         paginator: Optional[Paginator] = None,
+        send_typing:Optional[bool] = True,
         show_index: Optional[bool] = True,
         sort_commands: Optional[bool] = True,
         thumbnail_url: Optional[str] = None,
         **options,
+
     ):
         self.dm_help = dm_help
         self.index_title = index_title
@@ -369,6 +378,7 @@ class PrettyHelp(HelpCommand, commands.Cog):
         self.case_insensitive = case_insensitive
         self.ending_note = ending_note
         self.delete_invoke = delete_invoke
+        self.send_typing = send_typing
 
         super().__init__(**options)
 
@@ -488,38 +498,38 @@ class PrettyHelp(HelpCommand, commands.Cog):
                 bot.tree.get_commands(),
             )
         )
-        async with channel.typing():
-            mapping = {name: [] for name in mapping}
-            help_filtered = (
-                filter(lambda c: c.name != "help", bot.commands)
-                if len(bot.commands) > 1
-                else bot.commands
+        if self.send_typing:
+            await channel.typing()
+        mapping = {name: [] for name in mapping}
+        help_filtered = (
+            filter(lambda c: c.name != "help", bot.commands)
+            if len(bot.commands) > 1
+            else bot.commands
+        )
+        for cmd in (
+            await self.filter_commands(
+                help_filtered,
+                sort=self.sort_commands,
             )
-            for cmd in (
-                await self.filter_commands(
-                    help_filtered,
-                    sort=self.sort_commands,
-                )
-                + app_mapping
-            ):
-                if hasattr(cmd, "binding"):
-                    mapping[cmd.binding].append(cmd)
-                else:
-                    mapping[cmd.cog].append(cmd)
-
-            self.paginator.add_cog(self.no_category, mapping.pop(None))
-            sorted_map = sorted(
-                mapping.items(),
-                key=lambda cg: cg[0].qualified_name
-                if isinstance(cg[0], commands.Cog)
-                else str(cg[0]),
-            )
-            for cog, command_list in sorted_map:
-                # if a cog has the app_command attribute, it's an AppGroup Cog
-                if cog.app_command:
-                    command_list += cog.app_command.commands
-                self.paginator.add_cog(cog, command_list)
-            self.paginator.add_index(self.index_title, bot)
+            + app_mapping
+        ):
+            if hasattr(cmd, "binding"):
+                mapping[cmd.binding].append(cmd)
+            else:
+                mapping[cmd.cog].append(cmd)
+        self.paginator.add_cog(self.no_category, mapping.pop(None))
+        sorted_map = sorted(
+            mapping.items(),
+            key=lambda cg: cg[0].qualified_name
+            if isinstance(cg[0], commands.Cog)
+            else str(cg[0]),
+        )
+        for cog, command_list in sorted_map:
+            # if a cog has the app_command attribute, it's an AppGroup Cog
+            if cog.app_command:
+                command_list += cog.app_command.commands
+            self.paginator.add_cog(cog, command_list)
+        self.paginator.add_index(self.index_title, bot)
         await self.send_pages()
 
     def get_app_command_signature(self, command: app_commands.commands.Command):
@@ -569,22 +579,24 @@ class PrettyHelp(HelpCommand, commands.Cog):
             await self.send_pages()
 
     async def send_group_help(self, group: commands.Group):
-        async with self.get_destination().typing():
-            filtered = await self.filter_commands(
-                group.commands, sort=self.sort_commands
-            )
-            self.paginator.add_group(group, filtered)
+        if self.send_typing:
+            await self.get_destination().typing()
+        filtered = await self.filter_commands(
+            group.commands, sort=self.sort_commands
+        )
+        self.paginator.add_group(group, filtered)
         await self.send_pages()
 
     async def send_cog_help(self, cog: commands.Cog):
-        async with self.get_destination().typing():
-            filtered = await self.filter_commands(
-                cog.get_commands(), sort=self.sort_commands
-            )
-            filtered += await self.filter_app_commands(cog.get_app_commands())
-            if cog.app_command:
-                filtered += await self.filter_app_commands(cog.app_command.commands)
-            self.paginator.add_cog(cog, filtered)
+        if self.send_typing:
+            await self.get_destination().typing()
+        filtered = await self.filter_commands(
+            cog.get_commands(), sort=self.sort_commands
+        )
+        filtered += await self.filter_app_commands(cog.get_app_commands())
+        if cog.app_command:
+            filtered += await self.filter_app_commands(cog.app_command.commands)
+        self.paginator.add_cog(cog, filtered)
         await self.send_pages()
 
     async def send_error_message(self, error: str, /) -> None:
