@@ -26,10 +26,12 @@ class AppNav(View):
             pages: List[discord.Embed] = None,
             timeout: Optional[float] = None,
             ephemeral: Optional[bool] = False,
+            owner: Optional[int] = None,
     ):
         super().__init__(timeout=timeout)
         self.page_count = len(pages) if pages else None
         self.pages = pages
+        self.ownerID = owner
 
         if pages and len(pages) == 1:
             self.remove_item(self.previous)
@@ -85,6 +87,10 @@ class AppNav(View):
         await interaction.response.edit_message(
             embed=self.pages[self.index % self.page_count], view=self
         )
+    async def interaction_check(self, interaction: discord.Interaction) -> bool:
+        return True if not self.ownerID or interaction.user.id == self.ownerID else (
+            await interaction.response.send_message("Sorry, only the command author can interact with it.", ephemeral=True),
+            False)
 
 
 class AppMenu(PrettyMenu):
