@@ -88,10 +88,7 @@ class AppNav(View):
             embed=self.pages[self.index % self.page_count], view=self
         )
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
-        if interaction.user.id != self.allowed_user.id:
-            await interaction.response.send_message("Sorry, only the command author can interact with it.", ephemeral=True)
-            return False
-        return True
+        return interaction.user.id == self.allowed_user.id
 
 class AppMenu(PrettyMenu):
     """
