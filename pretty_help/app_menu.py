@@ -26,12 +26,12 @@ class AppNav(View):
             pages: List[discord.Embed] = None,
             timeout: Optional[float] = None,
             ephemeral: Optional[bool] = False,
-            allower_user: Optional[discord.Member] = None,
+            allowed_user: Optional[discord.Member] = None,
     ):
         super().__init__(timeout=timeout)
         self.page_count = len(pages) if pages else None
         self.pages = pages
-        self.allower_user = allower_user
+        self.allowed_user = allowed_user
 
         if pages and len(pages) == 1:
             self.remove_item(self.previous)
