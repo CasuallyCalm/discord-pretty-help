@@ -122,11 +122,11 @@ class AppMenu(PrettyMenu):
             await ctx.interaction.response.send_message(
                 embed=pages[0],
                 view=AppNav(
-                    pages=pages, timeout=self.timeout, ephemeral=self.ephemeral, allower_user=ctx.author
+                    pages=pages, timeout=self.timeout, ephemeral=self.ephemeral, allowed_user=ctx.author
                 ),
                 ephemeral=self.ephemeral,
             )
         else:
             await destination.send(
-                embed=pages[0], view=AppNav(pages=pages, timeout=self.timeout, allower_user=ctx.author)
+                embed=pages[0], view=AppNav(pages=pages, timeout=self.timeout, allowed_user=ctx.author)
             )
