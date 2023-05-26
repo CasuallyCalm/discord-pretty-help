@@ -26,10 +26,12 @@ class AppNav(View):
             pages: List[discord.Embed] = None,
             timeout: Optional[float] = None,
             ephemeral: Optional[bool] = False,
+            allowed_user: Optional[discord.Member] = None,
     ):
         super().__init__(timeout=timeout)
         self.page_count = len(pages) if pages else None
         self.pages = pages
+        self.allowed_user = allowed_user
 
         if pages and len(pages) == 1:
             self.remove_item(self.previous)
@@ -85,7 +87,8 @@ class AppNav(View):
         await interaction.response.edit_message(
             embed=self.pages[self.index % self.page_count], view=self
         )
-
+    async def interaction_check(self, interaction: discord.Interaction) -> bool:
+        return interaction.user.id == self.allowed_user.id
 
 class AppMenu(PrettyMenu):
     """
@@ -119,11 +122,11 @@ class AppMenu(PrettyMenu):
             await ctx.interaction.response.send_message(
                 embed=pages[0],
                 view=AppNav(
-                    pages=pages, timeout=self.timeout, ephemeral=self.ephemeral
+                    pages=pages, timeout=self.timeout, ephemeral=self.ephemeral, allower_user=ctx.author
                 ),
                 ephemeral=self.ephemeral,
             )
         else:
             await destination.send(
-                embed=pages[0], view=AppNav(pages=pages, timeout=self.timeout)
+                embed=pages[0], view=AppNav(pages=pages, timeout=self.timeout, allower_user=ctx.author)
             )
