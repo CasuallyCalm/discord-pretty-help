@@ -22,11 +22,11 @@ class AppNav(View):
     index = 0
 
     def __init__(
-            self,
-            pages: List[discord.Embed] = None,
-            timeout: Optional[float] = None,
-            ephemeral: Optional[bool] = False,
-            allowed_user: Optional[discord.Member] = None,
+        self,
+        pages: List[discord.Embed] = None,
+        timeout: Optional[float] = None,
+        ephemeral: Optional[bool] = False,
+        allowed_user: Optional[discord.Member] = None,
     ):
         super().__init__(timeout=timeout)
         self.page_count = len(pages) if pages else None
@@ -55,7 +55,7 @@ class AppNav(View):
         row=1,
         custom_id="pretty_help:previous",
     )
-    async def previous(self, interaction: discord.Interaction, button:discord.Button):
+    async def previous(self, interaction: discord.Interaction, button: discord.Button):
         self.index -= 1
         await self.update(interaction)
 
@@ -65,7 +65,7 @@ class AppNav(View):
         row=1,
         custom_id="pretty_help:next",
     )
-    async def next(self, interaction: discord.Interaction, button:discord.Button):
+    async def next(self, interaction: discord.Interaction, button: discord.Button):
         self.index += 1
         await self.update(interaction)
 
@@ -75,7 +75,7 @@ class AppNav(View):
         row=1,
         custom_id="pretty_help:delete",
     )
-    async def _delete(self, interaction: discord.Interaction, button:discord.Button):
+    async def _delete(self, interaction: discord.Interaction, button: discord.Button):
         await interaction.message.delete()
 
     @discord.ui.select(row=2, custom_id="pretty_help:select")
@@ -87,8 +87,15 @@ class AppNav(View):
         await interaction.response.edit_message(
             embed=self.pages[self.index % self.page_count], view=self
         )
+
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
-        return interaction.user.id == self.allowed_user.id
+        if (
+            not self.allowed_user
+            and interaction.data.get("custom_id") == self._delete.custom_id
+        ):
+            return True
+        return interaction.user == self.allowed_user
+
 
 class AppMenu(PrettyMenu):
     """
@@ -103,30 +110,33 @@ class AppMenu(PrettyMenu):
     """
 
     def __init__(
-            self,
-            timeout: Optional[float] = None,
-            ephemeral: Optional[bool] = False,
+        self,
+        timeout: Optional[float] = None,
+        ephemeral: Optional[bool] = False,
     ) -> None:
         # super().__init__()
         self.timeout = timeout
         self.ephemeral = ephemeral
 
     async def send_pages(
-            self,
-            ctx: commands.Context,
-            destination: discord.abc.Messageable,
-            pages: List[discord.Embed],
+        self,
+        ctx: commands.Context,
+        destination: discord.abc.Messageable,
+        pages: List[discord.Embed],
     ):
-
         if ctx.interaction:
             await ctx.interaction.response.send_message(
                 embed=pages[0],
                 view=AppNav(
-                    pages=pages, timeout=self.timeout, ephemeral=self.ephemeral, allowed_user=ctx.author
+                    pages=pages,
+                    timeout=self.timeout,
+                    ephemeral=self.ephemeral,
+                    allowed_user=ctx.author,
                 ),
                 ephemeral=self.ephemeral,
             )
         else:
             await destination.send(
-                embed=pages[0], view=AppNav(pages=pages, timeout=self.timeout, allowed_user=ctx.author)
+                embed=pages[0],
+                view=AppNav(pages=pages, timeout=self.timeout, allowed_user=ctx.author),
             )
