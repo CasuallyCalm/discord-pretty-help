@@ -409,7 +409,7 @@ class PrettyHelp(HelpCommand, commands.Cog):
     async def __help_autocomplete(
         self, interaction: discord.Interaction, current: str
     ) -> List[app_commands.Choice[str]]:
-        cmds = [*self.bot.all_commands.keys(), *self.bot.cogs.keys()]
+        cmds = [cmd.qualified_name for cmd in self.bot.walk_commands()]
         cmds += [
             app_cmd.name
             for app_cmd in self.bot.tree.get_commands(
