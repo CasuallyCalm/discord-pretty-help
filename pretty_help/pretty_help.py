@@ -152,7 +152,7 @@ class Paginator:
                 embed = self._new_page(page_title, embed.description)
 
             embed.add_field(
-                name=command_name, 
+                name=command_name,
                 value=f'{self.prefix}{short_doc or "No Description"}{self.suffix}',
                 inline=False,
             )
@@ -357,12 +357,11 @@ class PrettyHelp(HelpCommand, commands.Cog):
         menu: Optional[PrettyMenu] = AppMenu(),
         no_category: Optional[str] = "No Category",
         paginator: Optional[Paginator] = None,
-        send_typing:Optional[bool] = True,
+        send_typing: Optional[bool] = True,
         show_index: Optional[bool] = True,
         sort_commands: Optional[bool] = True,
         thumbnail_url: Optional[str] = None,
         **options,
-
     ):
         self.dm_help = dm_help
         self.index_title = index_title
@@ -405,6 +404,25 @@ class PrettyHelp(HelpCommand, commands.Cog):
         ctx = await commands.Context.from_interaction(interaction)
         ctx.bot = bot
         await ctx.invoke(bot.get_command("help"), command=command)
+
+    @_app_command_callback.autocomplete("command")
+    async def __help_autocomplete(
+        self, interaction: discord.Interaction, current: str
+    ) -> List[app_commands.Choice[str]]:
+        cmds = [*self.bot.all_commands.keys(), *self.bot.cogs.keys()]
+        cmds += [
+            app_cmd.name
+            for app_cmd in self.bot.tree.get_commands(
+                type=discord.AppCommandType.chat_input,
+                guild=interaction.guild,
+            )
+        ]
+
+        return [
+            app_commands.Choice(name=cmd, value=cmd)
+            for cmd in cmds
+            if current.lower() in cmd.lower()
+        ][:24]
 
     async def filter_app_commands(
         self, app_commands: List[app_commands.AppCommand], sort: bool = True
@@ -581,9 +599,7 @@ class PrettyHelp(HelpCommand, commands.Cog):
     async def send_group_help(self, group: commands.Group):
         if self.send_typing:
             await self.get_destination().typing()
-        filtered = await self.filter_commands(
-            group.commands, sort=self.sort_commands
-        )
+        filtered = await self.filter_commands(group.commands, sort=self.sort_commands)
         self.paginator.add_group(group, filtered)
         await self.send_pages()
 
