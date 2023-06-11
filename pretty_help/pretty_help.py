@@ -418,6 +418,8 @@ class PrettyHelp(HelpCommand, commands.Cog):
             )
         ]
 
+        cmds = sorted(cmds, key=lambda x: x.lower())  # Sort the commands alphabetically
+
         return [
             app_commands.Choice(name=cmd, value=cmd)
             for cmd in cmds
